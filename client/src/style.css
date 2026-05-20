@@ -599,6 +599,45 @@ html, body {
   letter-spacing: 1px;
 }
 
+/* Faixa de tempos abaixo do pódio */
+.podium-times {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0 14px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,.3);
+  border: 1px solid rgba(0,255,255,.2);
+  border-radius: 6px;
+}
+.podium-time-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+.pt-pos {
+  min-width: 24px;
+  font-weight: 900;
+  font-size: 14px;
+  text-shadow: 0 0 6px currentColor;
+}
+.pt-nick {
+  flex: 1;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pt-time {
+  color: var(--c-green);
+  text-shadow: 0 0 8px var(--c-green);
+  font-size: 14px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
 .victory-actions { margin-top: 8px; }
 
 /* Scrollbar customizada */

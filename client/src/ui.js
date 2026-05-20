@@ -33,6 +33,7 @@ const NK_UI = (() => {
     hudRanking:  document.getElementById('hud-ranking'),
     victory:     document.getElementById('victory-screen'),
     podium:      document.getElementById('podium'),
+    podiumTimes: document.getElementById('podium-times'),
     finalRanking:document.getElementById('final-ranking'),
     btnPlayAgain:document.getElementById('btn-play-again'),
     victoryWaiting: document.getElementById('victory-waiting')
@@ -151,11 +152,25 @@ const NK_UI = (() => {
           <div class="podium-crown">${medal}</div>
           <div class="podium-nick-text" style="color:${p.color}">${escapeHtml(p.nickname)}</div>
           ${p.habboNick ? `<div class="podium-habbo">@${escapeHtml(p.habboNick)}</div>` : ''}
-          ${p.finishTime != null ? `<div class="podium-time">${fmtTime(p.finishTime)}</div>` : ''}
         </div>
         <div class="podium-block">${idx + 1}</div>
       `;
       el.podium.appendChild(div);
+    });
+
+    // Faixa de tempos abaixo do pódio (1º, 2º, 3º)
+    el.podiumTimes.innerHTML = '';
+    [0, 1, 2].forEach(idx => {
+      const p = ranking[idx];
+      if (!p) return;
+      const div = document.createElement('div');
+      div.className = 'podium-time-entry';
+      div.innerHTML = `
+        <span class="pt-pos" style="color:${p.color}">${idx + 1}º</span>
+        <span class="pt-nick">${escapeHtml(p.nickname)}</span>
+        <span class="pt-time">${p.finishTime != null ? '⏱ ' + fmtTime(p.finishTime) : '—'}</span>
+      `;
+      el.podiumTimes.appendChild(div);
     });
 
     // 4º em diante
