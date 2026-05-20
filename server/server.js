@@ -203,9 +203,9 @@ io.on('connection', (socket) => {
     const playerIds = Object.keys(room.players);
     playerIds.forEach((id, i) => {
       const p = room.players[id];
-      // Todos na mesma linha de largada, distribuídos no eixo Y
+      // Todos na mesma linha de largada, centralizados na pista (y 1905–2095)
       p.x = 750;
-      p.y = 1885 + i * 12;
+      p.y = 1905 + i * 10;
       p.angle = 0;
       p.lap = 0;
       p.checkpoint = 0;

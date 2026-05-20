@@ -102,29 +102,30 @@ const NK_Track = {
 
   /**
    * Posições do grid de largada (em frente à linha de chegada).
-   * 20 posições na mesma linha de largada (mesmo x), sem vantagem para ninguém.
+   * 20 posições na mesma linha de largada (x=750), centralizadas na pista
+   * (track center y=2000, halfWidth=110, margem de 15px nas bordas).
    */
   startGrid: [
-    { x: 750, y: 1885, angle: 0 },
-    { x: 750, y: 1897, angle: 0 },
-    { x: 750, y: 1909, angle: 0 },
-    { x: 750, y: 1921, angle: 0 },
-    { x: 750, y: 1933, angle: 0 },
+    { x: 750, y: 1905, angle: 0 },
+    { x: 750, y: 1915, angle: 0 },
+    { x: 750, y: 1925, angle: 0 },
+    { x: 750, y: 1935, angle: 0 },
     { x: 750, y: 1945, angle: 0 },
-    { x: 750, y: 1957, angle: 0 },
-    { x: 750, y: 1969, angle: 0 },
-    { x: 750, y: 1981, angle: 0 },
-    { x: 750, y: 1993, angle: 0 },
+    { x: 750, y: 1955, angle: 0 },
+    { x: 750, y: 1965, angle: 0 },
+    { x: 750, y: 1975, angle: 0 },
+    { x: 750, y: 1985, angle: 0 },
+    { x: 750, y: 1995, angle: 0 },
     { x: 750, y: 2005, angle: 0 },
-    { x: 750, y: 2017, angle: 0 },
-    { x: 750, y: 2029, angle: 0 },
-    { x: 750, y: 2041, angle: 0 },
-    { x: 750, y: 2053, angle: 0 },
+    { x: 750, y: 2015, angle: 0 },
+    { x: 750, y: 2025, angle: 0 },
+    { x: 750, y: 2035, angle: 0 },
+    { x: 750, y: 2045, angle: 0 },
+    { x: 750, y: 2055, angle: 0 },
     { x: 750, y: 2065, angle: 0 },
-    { x: 750, y: 2077, angle: 0 },
-    { x: 750, y: 2089, angle: 0 },
-    { x: 750, y: 2101, angle: 0 },
-    { x: 750, y: 2113, angle: 0 }
+    { x: 750, y: 2075, angle: 0 },
+    { x: 750, y: 2085, angle: 0 },
+    { x: 750, y: 2095, angle: 0 }
   ],
 
   /**
