@@ -124,6 +124,15 @@ const NK_UI = (() => {
 
   // ------------------- TELA DE VITÓRIA -------------------
 
+  function fmtTime(ms) {
+    if (!ms && ms !== 0) return '';
+    const tenths = Math.floor(ms / 100) % 10;
+    const secs   = Math.floor(ms / 1000) % 60;
+    const mins   = Math.floor(ms / 60000);
+    if (mins > 0) return `${mins}:${String(secs).padStart(2, '0')}.${tenths}`;
+    return `${secs}.${tenths}s`;
+  }
+
   function showVictory(ranking, isHost) {
     // Pódio: ordem visual = 2º (esq) | 1º (centro) | 3º (dir)
     el.podium.innerHTML = '';
@@ -142,6 +151,7 @@ const NK_UI = (() => {
           <div class="podium-crown">${medal}</div>
           <div class="podium-nick-text" style="color:${p.color}">${escapeHtml(p.nickname)}</div>
           ${p.habboNick ? `<div class="podium-habbo">@${escapeHtml(p.habboNick)}</div>` : ''}
+          ${p.finishTime != null ? `<div class="podium-time">${fmtTime(p.finishTime)}</div>` : ''}
         </div>
         <div class="podium-block">${idx + 1}</div>
       `;
@@ -156,6 +166,7 @@ const NK_UI = (() => {
         <span class="medal">${i + 4}º</span>
         <span class="nick" style="color:${p.color}">${escapeHtml(p.nickname)}</span>
         ${p.habboNick ? `<span class="habbo">@${escapeHtml(p.habboNick)}</span>` : ''}
+        ${p.finishTime != null ? `<span class="finish-time">${fmtTime(p.finishTime)}</span>` : ''}
       `;
       el.finalRanking.appendChild(li);
     });

@@ -240,7 +240,7 @@ io.on('connection', (socket) => {
   socket.on('checkpoint', ({ checkpoint, lap }) => {
     const roomId = socket.data.roomId;
     const room = rooms[roomId];
-    if (!room) return;
+    if (!room || room.state !== 'racing') return;
     const p = room.players[socket.id];
     if (!p || p.finished) return;
 
@@ -250,24 +250,37 @@ io.on('connection', (socket) => {
     // Terminou a corrida?
     if (lap >= room.maxLaps) {
       p.finished = true;
-      // Calcula posição final
+      p.finishTime = Date.now() - room.startTime;
       const finishedCount = Object.values(room.players).filter(x => x.finished).length;
       p.position = finishedCount;
 
       io.to(roomId).emit('playerFinished', {
         playerId: socket.id,
         nickname: p.nickname,
-        position: p.position
+        position: p.position,
+        finishTime: p.finishTime
       });
 
-      // Todos terminaram? Encerra a corrida
-      const total = Object.keys(room.players).length;
-      if (finishedCount >= total) {
+      // Encerra assim que o primeiro terminar
+      if (finishedCount === 1) {
         room.state = 'finished';
-        const ranking = Object.values(room.players)
-          .sort((a, b) => a.position - b.position)
-          .map(x => ({ nickname: x.nickname, habboNick: x.habboNick, position: x.position, color: x.color }));
+
+        // Terminados primeiro (por posição), depois os demais (por volta/checkpoint)
+        const finished   = Object.values(room.players).filter(x => x.finished)
+          .sort((a, b) => a.position - b.position);
+        const unfinished = Object.values(room.players).filter(x => !x.finished)
+          .sort((a, b) => b.lap !== a.lap ? b.lap - a.lap : b.checkpoint - a.checkpoint);
+
+        const ranking = [...finished, ...unfinished].map(x => ({
+          nickname:   x.nickname,
+          habboNick:  x.habboNick,
+          position:   x.position,
+          color:      x.color,
+          finishTime: x.finishTime || null
+        }));
+
         io.to(roomId).emit('raceFinished', { ranking });
+        console.log(`[CORRIDA] Encerrada na sala ${roomId} — vencedor: ${p.nickname}`);
 
         // Volta para o lobby após 8s
         setTimeout(() => {

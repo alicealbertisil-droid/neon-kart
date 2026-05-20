@@ -524,6 +524,14 @@ html, body {
   font-size: 11px;
   color: var(--c-muted);
 }
+.podium-time {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--c-green);
+  text-shadow: 0 0 6px var(--c-green);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
 .podium-block {
   width: 100%;
   display: flex;
@@ -579,10 +587,16 @@ html, body {
 .final-ranking li .medal { min-width: 28px; color: var(--c-muted); }
 .final-ranking li .nick { font-weight: 700; }
 .final-ranking li .habbo {
-  margin-left: auto;
   font-family: var(--font-body);
   font-size: 12px;
   color: var(--c-muted);
+}
+.final-ranking li .finish-time {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--c-green);
+  letter-spacing: 1px;
 }
 
 .victory-actions { margin-top: 8px; }
