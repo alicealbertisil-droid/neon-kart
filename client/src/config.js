@@ -38,7 +38,7 @@ const NK_CONFIG = {
     FRICTION: 300, // perda natural de velocidade
     TURN_SPEED: 180, // velocidade da curva (graus/segundo)
     DRIFT_MULT: 1.6, // multiplicador da curva durante drift
-    OFFTRACK_MULT: 0.45, // quanto a velocidade cai fora da pista
+    OFFTRACK_MULT: 0.55, // velocidade máxima fora da pista (fração de MAX_SPEED)
     BOOST_SPEED: 650, // velocidade durante boost
     BOOST_DURATION: 1500, // ms
     SIZE: 28, // tamanho do carro (px)

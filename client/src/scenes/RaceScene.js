@@ -317,8 +317,10 @@ class RaceScene extends Phaser.Scene {
     const nextY = car.sprite.y + vy;
 
     // ----- PENALIDADE FORA DA PISTA -----
+    // Cap de velocidade (não decay por frame, para evitar efeito areia movediça)
     if (!window.NK_Track.isOnTrack(nextX, nextY)) {
-      car.speed *= C.OFFTRACK_MULT;
+      const cap = C.MAX_SPEED * C.OFFTRACK_MULT;
+      if (car.speed > cap) car.speed = cap;
     }
 
     car.sprite.x = nextX;
