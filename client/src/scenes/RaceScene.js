@@ -265,9 +265,8 @@ class RaceScene extends Phaser.Scene {
     const down  = k.S.isDown || c.down.isDown  || !!t.down;
     const left  = k.A.isDown || c.left.isDown  || !!t.left;
     const right = k.D.isDown || c.right.isDown || !!t.right;
-    const drift = k.SHIFT.isDown               || !!t.drift;
 
-    car.drifting = drift && (left || right) && Math.abs(car.speed) > 100;
+    car.drifting = false;
 
     // Boost ativo?
     const boosting = time < this.boostUntil;
@@ -301,8 +300,6 @@ class RaceScene extends Phaser.Scene {
     // Só pode girar se estiver se movendo (mais realista)
     if (Math.abs(car.speed) > 5) {
       let turnSpeed = Phaser.Math.DegToRad(C.TURN_SPEED);
-      // Drift fake: aumenta o ângulo de virada
-      if (car.drifting) turnSpeed *= C.DRIFT_MULT;
       // Reduz curva em velocidades muito baixas
       const speedFactor = Math.min(1, Math.abs(car.speed) / 200);
       // Carro vai de ré: inverte direção
@@ -313,14 +310,8 @@ class RaceScene extends Phaser.Scene {
     }
 
     // ----- POSIÇÃO -----
-    let vx = Math.cos(car.angle) * car.speed * dt;
-    let vy = Math.sin(car.angle) * car.speed * dt;
-
-    // Drift: aplica um pequeno deslizamento lateral
-    if (car.drifting) {
-      vx += Math.cos(car.angle + Math.PI/2) * car.speed * 0.15 * dt * (left ? -1 : 1);
-      vy += Math.sin(car.angle + Math.PI/2) * car.speed * 0.15 * dt * (left ? -1 : 1);
-    }
+    const vx = Math.cos(car.angle) * car.speed * dt;
+    const vy = Math.sin(car.angle) * car.speed * dt;
 
     const nextX = car.sprite.x + vx;
     const nextY = car.sprite.y + vy;
@@ -333,13 +324,6 @@ class RaceScene extends Phaser.Scene {
     car.sprite.x = nextX;
     car.sprite.y = nextY;
     car.sprite.setRotation(car.angle);
-
-    // Marcas de drift no chão (opcional, leve)
-    if (car.drifting && time % 4 < 1) {
-      const skid = this.add.circle(car.sprite.x, car.sprite.y, 3, 0xffffff, 0.5);
-      skid.setDepth(1);
-      this.tweens.add({ targets: skid, alpha: 0, duration: 1500, onComplete: () => skid.destroy() });
-    }
   }
 
   // ----------------------------------------------------------

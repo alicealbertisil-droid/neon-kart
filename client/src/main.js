@@ -32,7 +32,7 @@
   // ---------------------------------------------------------
   // Touch controls
   // ---------------------------------------------------------
-  window.NK_Touch = { up: false, down: false, left: false, right: false, drift: false };
+  window.NK_Touch = { up: false, down: false, left: false, right: false };
 
   function setupTouchControls() {
     const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
@@ -64,7 +64,6 @@
     bind('tc-brake', 'down');
     bind('tc-left',  'left');
     bind('tc-right', 'right');
-    bind('tc-drift', 'drift');
   }
 
   function showTouchControls() {
