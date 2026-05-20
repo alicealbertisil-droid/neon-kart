@@ -17,7 +17,7 @@ const NK_CONFIG = {
   // Exemplo: 'https://meu-neon-kart.onrender.com'
   SERVER_URL: window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
-    : 'https://SEU-SERVIDOR-AQUI.onrender.com',
+    : 'https://neon-kart.onrender.com',
 
   /* ----- PISTA ----- */
   WORLD_WIDTH:  4000,   // largura total do mundo do jogo (px)
