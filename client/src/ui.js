@@ -32,8 +32,10 @@ const NK_UI = (() => {
     hudPos:      document.getElementById('hud-pos'),
     hudRanking:  document.getElementById('hud-ranking'),
     victory:     document.getElementById('victory-screen'),
+    podium:      document.getElementById('podium'),
     finalRanking:document.getElementById('final-ranking'),
-    backCounter: document.getElementById('back-counter')
+    btnPlayAgain:document.getElementById('btn-play-again'),
+    victoryWaiting: document.getElementById('victory-waiting')
   };
 
   // ------------------- HELPERS DE TELA -------------------
@@ -122,32 +124,66 @@ const NK_UI = (() => {
 
   // ------------------- TELA DE VITÓRIA -------------------
 
-  function showVictory(ranking) {
+  function showVictory(ranking, isHost) {
+    // Pódio: ordem visual = 2º (esq) | 1º (centro) | 3º (dir)
+    el.podium.innerHTML = '';
+    const podiumSlots = [
+      { idx: 1, cls: 'p2', medal: '🥈' },
+      { idx: 0, cls: 'p1', medal: '🥇' },
+      { idx: 2, cls: 'p3', medal: '🥉' },
+    ];
+    podiumSlots.forEach(({ idx, cls, medal }) => {
+      const p = ranking[idx];
+      if (!p) return;
+      const div = document.createElement('div');
+      div.className = `podium-place ${cls}`;
+      div.innerHTML = `
+        <div class="podium-info">
+          <div class="podium-crown">${medal}</div>
+          <div class="podium-nick-text" style="color:${p.color}">${escapeHtml(p.nickname)}</div>
+          ${p.habboNick ? `<div class="podium-habbo">@${escapeHtml(p.habboNick)}</div>` : ''}
+        </div>
+        <div class="podium-block">${idx + 1}</div>
+      `;
+      el.podium.appendChild(div);
+    });
+
+    // 4º em diante
     el.finalRanking.innerHTML = '';
-    const medals = ['🥇', '🥈', '🥉'];
-    ranking.forEach((p, i) => {
+    ranking.slice(3).forEach((p, i) => {
       const li = document.createElement('li');
       li.innerHTML = `
-        <span class="medal">${medals[i] || `${i+1}º`}</span>
+        <span class="medal">${i + 4}º</span>
         <span class="nick" style="color:${p.color}">${escapeHtml(p.nickname)}</span>
-        ${p.habboNick ? `<span class="habbo">Habbo: ${escapeHtml(p.habboNick)}</span>` : ''}
+        ${p.habboNick ? `<span class="habbo">@${escapeHtml(p.habboNick)}</span>` : ''}
       `;
       el.finalRanking.appendChild(li);
     });
-    el.victory.classList.remove('hidden');
 
-    // Conta regressiva
-    let n = 8;
-    el.backCounter.textContent = n;
-    const intv = setInterval(() => {
-      n--;
-      el.backCounter.textContent = n;
-      if (n <= 0) clearInterval(intv);
-    }, 1000);
+    // Controles de host vs guest
+    if (isHost) {
+      el.btnPlayAgain.classList.remove('hidden');
+      el.victoryWaiting.classList.add('hidden');
+    } else {
+      el.btnPlayAgain.classList.add('hidden');
+      el.victoryWaiting.classList.remove('hidden');
+    }
+
+    el.victory.classList.remove('hidden');
   }
 
   function hideVictory() {
     el.victory.classList.add('hidden');
+    el.btnPlayAgain.classList.add('hidden');
+    el.victoryWaiting.classList.add('hidden');
+  }
+
+  function updateVictoryControls(isHost) {
+    if (el.victory.classList.contains('hidden')) return;
+    if (isHost) {
+      el.btnPlayAgain.classList.remove('hidden');
+      el.victoryWaiting.classList.add('hidden');
+    }
   }
 
   // ------------------- HELPERS -------------------
@@ -174,7 +210,7 @@ const NK_UI = (() => {
     showLobby, showGame,
     showWaitingRoom, updateHostControls,
     renderPlayersList, renderRanking,
-    showVictory, hideVictory,
+    showVictory, hideVictory, updateVictoryControls,
     getRoomIdFromURL, syncRoomToURL,
     copyShareLink
   };

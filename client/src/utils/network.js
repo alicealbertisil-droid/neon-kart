@@ -126,10 +126,15 @@ const NK_Net = (() => {
     socket.emit('boostPickup', { boostId });
   }
 
+  /** Host volta ao lobby a partir do pódio */
+  function sendReadyToLobby() {
+    socket.emit('readyToLobby');
+  }
+
   return {
     connect, on, once,
     joinRoom, startRace,
-    sendUpdate, sendCheckpoint, sendBoostPickup,
+    sendUpdate, sendCheckpoint, sendBoostPickup, sendReadyToLobby,
     get myId()     { return myId; },
     get myRoomId() { return myRoomId; },
     get isHost()   { return isHost; }

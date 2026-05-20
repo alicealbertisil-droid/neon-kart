@@ -134,9 +134,13 @@ o CSS e os scripts do jogo (na ordem certa).
     <div id="victory-screen" class="victory hidden">
       <div class="victory-card">
         <div class="title-tag">// CORRIDA FINALIZADA //</div>
-        <h2 class="victory-title">🏆 RESULTADO 🏆</h2>
+        <h2 class="victory-title">PÓDIO</h2>
+        <div id="podium" class="podium"></div>
         <ol id="final-ranking" class="final-ranking"></ol>
-        <div class="victory-info">Voltando ao lobby em <span id="back-counter">8</span>s...</div>
+        <div class="victory-actions">
+          <button id="btn-play-again" class="neon-btn primary big hidden">▶ JOGAR NOVAMENTE</button>
+          <div id="victory-waiting" class="guest-hint hidden">⏳ Aguardando o host...</div>
+        </div>
       </div>
     </div>
   </div>

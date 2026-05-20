@@ -39,6 +39,11 @@
     $('btn-start-race').addEventListener('click', onStartRaceClick);
     // Botão de copiar link
     $('btn-copy-link').addEventListener('click', window.NK_UI.copyShareLink);
+    // Botão do pódio: host volta ao lobby
+    $('btn-play-again').addEventListener('click', () => {
+      window.NK_Audio.click();
+      window.NK_Net.sendReadyToLobby();
+    });
 
     // Pressionar Enter no formulário entra
     $('input-nickname').addEventListener('keydown', e => { if (e.key === 'Enter') onJoinClick(); });
@@ -140,6 +145,8 @@
 
     window.NK_Net.on('youAreHost', () => {
       window.NK_UI.updateHostControls(true);
+      // Se a tela de pódio está aberta, libera o botão para o novo host
+      window.NK_UI.updateVictoryControls(true);
     });
 
     window.NK_Net.on('roomFull', (d) => alert(d.message));
@@ -184,7 +191,7 @@
 
     // ----- TODOS TERMINARAM: TELA DE VITÓRIA -----
     window.NK_Net.on('raceFinished', (data) => {
-      window.NK_UI.showVictory(data.ranking);
+      window.NK_UI.showVictory(data.ranking, window.NK_Net.isHost);
       window.NK_Audio.stopEngine();
       window.NK_Audio.stopMusic();
     });

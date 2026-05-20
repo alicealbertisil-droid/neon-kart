@@ -289,8 +289,23 @@ io.on('connection', (socket) => {
   socket.on('boostPickup', ({ boostId }) => {
     const roomId = socket.data.roomId;
     if (!roomId) return;
-    // Avisa todos para esconder esse boost por X segundos
     io.to(roomId).emit('boostTaken', { boostId, byId: socket.id });
+  });
+
+  /**
+   * Host quer voltar ao lobby antes do timer automático (da tela de pódio).
+   */
+  socket.on('readyToLobby', () => {
+    const roomId = socket.data.roomId;
+    const room = rooms[roomId];
+    if (!room || room.hostId !== socket.id || room.state !== 'finished') return;
+
+    room.state = 'lobby';
+    Object.values(room.players).forEach(p => {
+      p.lap = 0; p.checkpoint = 0; p.finished = false; p.position = 0;
+    });
+    io.to(roomId).emit('backToLobby', { players: getPlayerList(room) });
+    console.log(`[LOBBY] Host voltou ao lobby na sala ${roomId}`);
   });
 
   /**
