@@ -644,3 +644,120 @@ html, body {
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: rgba(0,0,0,.3); }
 ::-webkit-scrollbar-thumb { background: var(--c-magenta); border-radius: 4px; }
+
+/* ==================== TOUCH CONTROLS ==================== */
+.touch-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 12px 20px 20px;
+  pointer-events: none;
+  z-index: 60;
+}
+.touch-controls.hidden { display: none !important; }
+
+.tc-steer, .tc-actions {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  pointer-events: all;
+}
+.tc-actions { flex-direction: row; align-items: flex-end; }
+
+.tc-btn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 2px solid var(--c-cyan);
+  background: rgba(0,255,255,.08);
+  backdrop-filter: blur(4px);
+  color: var(--c-cyan);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background .08s, box-shadow .08s;
+  box-shadow: 0 0 14px rgba(0,255,255,.25), inset 0 0 8px rgba(0,255,255,.05);
+}
+.tc-btn.active {
+  background: rgba(0,255,255,.28);
+  box-shadow: 0 0 28px var(--c-cyan), inset 0 0 14px rgba(0,255,255,.15);
+}
+
+.tc-gas {
+  width: 96px;
+  height: 96px;
+  font-size: 28px;
+  border-color: var(--c-green);
+  background: rgba(0,255,136,.08);
+  color: var(--c-green);
+  box-shadow: 0 0 18px rgba(0,255,136,.3), inset 0 0 8px rgba(0,255,136,.05);
+}
+.tc-gas.active {
+  background: rgba(0,255,136,.28);
+  box-shadow: 0 0 34px var(--c-green), inset 0 0 16px rgba(0,255,136,.18);
+}
+
+.tc-brake {
+  border-color: var(--c-pink);
+  background: rgba(255,0,102,.08);
+  color: var(--c-pink);
+  box-shadow: 0 0 14px rgba(255,0,102,.25), inset 0 0 8px rgba(255,0,102,.05);
+}
+.tc-brake.active {
+  background: rgba(255,0,102,.28);
+  box-shadow: 0 0 28px var(--c-pink), inset 0 0 14px rgba(255,0,102,.15);
+}
+
+.tc-drift {
+  font-size: 11px;
+  letter-spacing: 2px;
+  border-color: var(--c-yellow);
+  background: rgba(255,255,0,.08);
+  color: var(--c-yellow);
+  box-shadow: 0 0 14px rgba(255,255,0,.25), inset 0 0 8px rgba(255,255,0,.05);
+}
+.tc-drift.active {
+  background: rgba(255,255,0,.28);
+  box-shadow: 0 0 28px var(--c-yellow), inset 0 0 14px rgba(255,255,0,.15);
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 600px) {
+  .lobby-container { padding: 12px 10px; }
+  .game-title { font-size: 56px; letter-spacing: 6px; }
+  .subtitle { font-size: 12px; }
+  .card { padding: 18px 16px; border-radius: 8px; }
+  .card-title { font-size: 13px; letter-spacing: 3px; }
+  .neon-btn.big { font-size: 14px; padding: 12px 20px; }
+
+  /* No HUD mobile: esconde elementos que sobrepõem os controles touch */
+  .hud-block.speedo { display: none; }
+  .hud-block.controls-hint { display: none; }
+  .hud-block.ranking { right: 4px; top: 80px; }
+  .hud-block.ranking ul { max-height: 140px; overflow: hidden; }
+
+  /* Vitória: card menor */
+  .victory-card { padding: 20px 14px 16px; min-width: 0; border-radius: 8px; }
+  .victory-title { font-size: 22px; letter-spacing: 4px; }
+  .podium { height: 160px; }
+  .podium-place.p1 .podium-block { height: 70px; font-size: 26px; }
+  .podium-place.p2 .podium-block { height: 52px; font-size: 22px; }
+  .podium-place.p3 .podium-block { height: 38px; font-size: 18px; }
+  .podium-nick-text { font-size: 11px; max-width: 80px; }
+  .podium-time-entry { font-size: 11px; }
+  .pt-time { font-size: 12px; }
+  .final-ranking li { font-size: 12px; padding: 6px 10px; }
+  .neon-btn.primary.big { font-size: 13px; padding: 11px 18px; }
+}

@@ -102,17 +102,19 @@ const NK_Track = {
 
   /**
    * Posições do grid de largada (em frente à linha de chegada).
-   * 8 posições, em 2 colunas, para 8 jogadores.
+   * 20 posições, em 2 colunas, para até 20 jogadores.
    */
   startGrid: [
-    { x: 750, y: 1960, angle: 0 },
-    { x: 750, y: 2040, angle: 0 },
-    { x: 680, y: 1960, angle: 0 },
-    { x: 680, y: 2040, angle: 0 },
-    { x: 610, y: 1960, angle: 0 },
-    { x: 610, y: 2040, angle: 0 },
-    { x: 540, y: 1960, angle: 0 },
-    { x: 540, y: 2040, angle: 0 }
+    { x: 750, y: 1960, angle: 0 }, { x: 750, y: 2040, angle: 0 },
+    { x: 700, y: 1960, angle: 0 }, { x: 700, y: 2040, angle: 0 },
+    { x: 650, y: 1960, angle: 0 }, { x: 650, y: 2040, angle: 0 },
+    { x: 600, y: 1960, angle: 0 }, { x: 600, y: 2040, angle: 0 },
+    { x: 550, y: 1960, angle: 0 }, { x: 550, y: 2040, angle: 0 },
+    { x: 500, y: 1960, angle: 0 }, { x: 500, y: 2040, angle: 0 },
+    { x: 450, y: 1960, angle: 0 }, { x: 450, y: 2040, angle: 0 },
+    { x: 400, y: 1960, angle: 0 }, { x: 400, y: 2040, angle: 0 },
+    { x: 350, y: 1960, angle: 0 }, { x: 350, y: 2040, angle: 0 },
+    { x: 300, y: 1960, angle: 0 }, { x: 300, y: 2040, angle: 0 }
   ],
 
   /**

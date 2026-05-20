@@ -30,6 +30,58 @@
   }
 
   // ---------------------------------------------------------
+  // Touch controls
+  // ---------------------------------------------------------
+  window.NK_Touch = { up: false, down: false, left: false, right: false, drift: false };
+
+  function setupTouchControls() {
+    const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    if (!isTouchDevice) return;
+
+    function bind(id, key) {
+      const btn = $(id);
+      if (!btn) return;
+      const press = (e) => {
+        e.preventDefault();
+        window.NK_Touch[key] = true;
+        btn.classList.add('active');
+      };
+      const release = (e) => {
+        e.preventDefault();
+        window.NK_Touch[key] = false;
+        btn.classList.remove('active');
+      };
+      btn.addEventListener('touchstart', press, { passive: false });
+      btn.addEventListener('touchend', release, { passive: false });
+      btn.addEventListener('touchcancel', release, { passive: false });
+      // Also support mouse for testing on desktop
+      btn.addEventListener('mousedown', press);
+      btn.addEventListener('mouseup', release);
+      btn.addEventListener('mouseleave', release);
+    }
+
+    bind('tc-gas',   'up');
+    bind('tc-brake', 'down');
+    bind('tc-left',  'left');
+    bind('tc-right', 'right');
+    bind('tc-drift', 'drift');
+  }
+
+  function showTouchControls() {
+    const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    if (!isTouchDevice) return;
+    const el = $('touch-controls');
+    if (el) el.classList.remove('hidden');
+  }
+
+  function hideTouchControls() {
+    const el = $('touch-controls');
+    if (el) el.classList.add('hidden');
+    // Reset all states
+    Object.keys(window.NK_Touch).forEach(k => { window.NK_Touch[k] = false; });
+  }
+
+  // ---------------------------------------------------------
   // 1) Setup inicial da UI
   // ---------------------------------------------------------
   function init() {
@@ -44,6 +96,9 @@
       window.NK_Audio.click();
       window.NK_Net.sendReadyToLobby();
     });
+
+    // Configura os botões de touch
+    setupTouchControls();
 
     // Pressionar Enter no formulário entra
     $('input-nickname').addEventListener('keydown', e => { if (e.key === 'Enter') onJoinClick(); });
@@ -164,6 +219,7 @@
 
       // Muda para a tela do jogo
       window.NK_UI.showGame();
+      showTouchControls();
 
       // Inicializa o Phaser (apenas uma vez!)
       if (!phaserGame) {
@@ -194,6 +250,7 @@
       window.NK_UI.showVictory(data.ranking, window.NK_Net.isHost);
       window.NK_Audio.stopEngine();
       window.NK_Audio.stopMusic();
+      hideTouchControls();
     });
 
     // ----- VOLTA PARA O LOBBY -----
@@ -205,8 +262,9 @@
       if (phaserGame && phaserGame.scene.isActive('RaceScene')) {
         phaserGame.scene.stop('RaceScene');
       }
-      // Esconde HUD
+      // Esconde HUD e controles touch
       $('hud').classList.add('hidden');
+      hideTouchControls();
     });
   }
 

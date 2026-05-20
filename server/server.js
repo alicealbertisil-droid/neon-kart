@@ -63,7 +63,19 @@ const NEON_COLORS = [
   '#ff0066', // rosa
   '#ff6600', // laranja
   '#8800ff', // roxo
-  '#00aaff'  // azul elétrico
+  '#00aaff', // azul elétrico
+  '#ff3300', // vermelho laranja
+  '#00ff00', // verde puro
+  '#ff99ff', // rosa claro
+  '#00ffcc', // turquesa
+  '#ffaa00', // âmbar
+  '#cc00ff', // violeta
+  '#00ccff', // azul céu
+  '#ff0099', // pink quente
+  '#aaff00', // chartreuse
+  '#ff6699', // coral
+  '#6600ff', // índigo
+  '#00ff66', // verde limão
 ];
 
 // ------------------- HELPERS -------------------
@@ -131,9 +143,9 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Limite de 8 jogadores por sala
-    if (Object.keys(room.players).length >= 8) {
-      socket.emit('roomFull', { message: 'Sala cheia! (máx. 8 jogadores)' });
+    // Limite de 20 jogadores por sala
+    if (Object.keys(room.players).length >= 20) {
+      socket.emit('roomFull', { message: 'Sala cheia! (máx. 20 jogadores)' });
       return;
     }
 

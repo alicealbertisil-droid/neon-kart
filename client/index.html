@@ -10,7 +10,7 @@ o CSS e os scripts do jogo (na ordem certa).
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>NEON KART · Arcade Multiplayer</title>
 
   <!-- Fontes -->
@@ -65,7 +65,7 @@ o CSS e os scripts do jogo (na ordem certa).
         </div>
 
         <div class="players-list-wrap">
-          <div class="players-header">PILOTOS CONECTADOS <span id="players-count">0</span>/8</div>
+          <div class="players-header">PILOTOS CONECTADOS <span id="players-count">0</span>/20</div>
           <ul id="players-list" class="players-list"></ul>
         </div>
 
@@ -126,8 +126,21 @@ o CSS e os scripts do jogo (na ordem certa).
         </div>
       </div>
 
-      <!-- Countdown inicial 3·2·1·GO -->
+        <!-- Countdown inicial 3·2·1·GO -->
       <div id="countdown" class="countdown hidden"></div>
+    </div>
+
+    <!-- Controles touch para mobile -->
+    <div id="touch-controls" class="touch-controls hidden">
+      <div class="tc-steer">
+        <button class="tc-btn tc-left" id="tc-left">◄</button>
+        <button class="tc-btn tc-right" id="tc-right">►</button>
+      </div>
+      <div class="tc-actions">
+        <button class="tc-btn tc-drift" id="tc-drift">DRIFT</button>
+        <button class="tc-btn tc-brake" id="tc-brake">▼</button>
+        <button class="tc-btn tc-gas" id="tc-gas">▲</button>
+      </div>
     </div>
 
     <!-- Tela de vitória / ranking final -->

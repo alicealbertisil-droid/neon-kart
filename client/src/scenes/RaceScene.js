@@ -260,11 +260,12 @@ class RaceScene extends Phaser.Scene {
     const k = this.keys;
     const c = this.cursors;
 
-    const up    = k.W.isDown || c.up.isDown;
-    const down  = k.S.isDown || c.down.isDown;
-    const left  = k.A.isDown || c.left.isDown;
-    const right = k.D.isDown || c.right.isDown;
-    const drift = k.SHIFT.isDown;
+    const t = window.NK_Touch || {};
+    const up    = k.W.isDown || c.up.isDown    || !!t.up;
+    const down  = k.S.isDown || c.down.isDown  || !!t.down;
+    const left  = k.A.isDown || c.left.isDown  || !!t.left;
+    const right = k.D.isDown || c.right.isDown || !!t.right;
+    const drift = k.SHIFT.isDown               || !!t.drift;
 
     car.drifting = drift && (left || right) && Math.abs(car.speed) > 100;
 
