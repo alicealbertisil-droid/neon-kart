@@ -203,11 +203,9 @@ io.on('connection', (socket) => {
     const playerIds = Object.keys(room.players);
     playerIds.forEach((id, i) => {
       const p = room.players[id];
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      // Coordenadas iniciais do grid (ajustadas no cliente também)
-      p.x = 400 + col * 60;
-      p.y = 300 + row * 80;
+      // Todos na mesma linha de largada, distribuídos no eixo Y
+      p.x = 750;
+      p.y = 1885 + i * 12;
       p.angle = 0;
       p.lap = 0;
       p.checkpoint = 0;
