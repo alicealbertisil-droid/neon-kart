@@ -1,0 +1,159 @@
+<!--
+============================================================
+NEON KART - CLIENTE WEB
+============================================================
+Arquivo principal HTML. Carrega Phaser.js, Socket.IO,
+o CSS e os scripts do jogo (na ordem certa).
+============================================================
+-->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEON KART · Arcade Multiplayer</title>
+
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos do jogo -->
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+
+  <!-- ============== TELA DE LOGIN / LOBBY ============== -->
+  <div id="ui-lobby" class="screen active">
+    <!-- Fundo decorativo neon -->
+    <div class="grid-bg"></div>
+    <div class="scanlines"></div>
+
+    <div class="lobby-container">
+      <header class="title-block">
+        <div class="title-tag">// MULTIPLAYER ARCADE //</div>
+        <h1 class="game-title">
+          <span class="title-neon-cyan">NEON</span><span class="title-neon-pink">KART</span>
+        </h1>
+        <p class="subtitle">corrida arcade futurista · online · multiplayer</p>
+      </header>
+
+      <!-- Formulário inicial: nickname e habbo nick -->
+      <div id="form-join" class="card">
+        <h2 class="card-title">::: ENTRAR NA CORRIDA :::</h2>
+        <label class="field">
+          <span>NICKNAME</span>
+          <input id="input-nickname" type="text" maxlength="16" placeholder="Ex: VeloZ_99" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>NICK DO HABBO</span>
+          <input id="input-habbo" type="text" maxlength="16" placeholder="Ex: .Lucas." autocomplete="off" />
+        </label>
+        <button id="btn-join" class="neon-btn primary">CONECTAR &rsaquo;&rsaquo;</button>
+        <div class="join-hint">
+          Compartilhe o link com seus amigos para jogarem juntos automaticamente.
+        </div>
+      </div>
+
+      <!-- Sala de espera: aparece depois que o jogador conecta -->
+      <div id="waiting-room" class="card hidden">
+        <h2 class="card-title">::: LOBBY :::</h2>
+        <div class="room-info">
+          <div><span class="muted">SALA</span> <span id="room-id-display">—</span></div>
+          <div><button id="btn-copy-link" class="neon-btn small">COPIAR LINK</button></div>
+        </div>
+
+        <div class="players-list-wrap">
+          <div class="players-header">PILOTOS CONECTADOS <span id="players-count">0</span>/8</div>
+          <ul id="players-list" class="players-list"></ul>
+        </div>
+
+        <div id="host-controls" class="host-controls hidden">
+          <button id="btn-start-race" class="neon-btn primary big">▶ INICIAR CORRIDA</button>
+          <div class="host-hint">Você é o HOST. Pode iniciar quando quiser.</div>
+        </div>
+        <div id="guest-hint" class="guest-hint">
+          ⏳ Aguardando o host iniciar a corrida...
+        </div>
+      </div>
+
+      <footer class="lobby-footer">
+        <span class="muted">v1.0 · powered by phaser + socket.io</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============== TELA DO JOGO ============== -->
+  <div id="ui-game" class="screen">
+    <!-- Phaser injeta um canvas dentro deste container -->
+    <div id="game-container"></div>
+
+    <!-- HUD overlay (HUD = heads-up display) -->
+    <div id="hud" class="hud hidden">
+      <!-- Topo esquerdo: volta + velocímetro -->
+      <div class="hud-block top-left">
+        <div class="hud-label">VOLTA</div>
+        <div class="hud-value"><span id="hud-lap">1</span> / <span id="hud-maxlap">3</span></div>
+      </div>
+
+      <!-- Topo direito: posição -->
+      <div class="hud-block top-right">
+        <div class="hud-label">POSIÇÃO</div>
+        <div class="hud-value"><span id="hud-pos">-</span></div>
+      </div>
+
+      <!-- Lateral direita: ranking ao vivo -->
+      <div class="hud-block ranking">
+        <div class="hud-label">RANKING</div>
+        <ul id="hud-ranking"></ul>
+      </div>
+
+      <!-- Inferior centro: velocímetro -->
+      <div class="hud-block speedo">
+        <div class="hud-label">VELOCIDADE</div>
+        <div class="speed-bar"><div id="speed-fill"></div></div>
+        <div class="hud-value small"><span id="hud-speed">0</span> KM/H</div>
+      </div>
+
+      <!-- Inferior esquerdo: controles -->
+      <div class="hud-block controls-hint">
+        <div class="hud-label">CONTROLES</div>
+        <div class="keys">
+          <span>W/↑ acelerar</span><span>S/↓ ré</span><br/>
+          <span>A/← esq</span><span>D/→ dir</span><br/>
+          <span>SHIFT drift</span>
+        </div>
+      </div>
+
+      <!-- Countdown inicial 3·2·1·GO -->
+      <div id="countdown" class="countdown hidden"></div>
+    </div>
+
+    <!-- Tela de vitória / ranking final -->
+    <div id="victory-screen" class="victory hidden">
+      <div class="victory-card">
+        <div class="title-tag">// CORRIDA FINALIZADA //</div>
+        <h2 class="victory-title">🏆 RESULTADO 🏆</h2>
+        <ol id="final-ranking" class="final-ranking"></ol>
+        <div class="victory-info">Voltando ao lobby em <span id="back-counter">8</span>s...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== BIBLIOTECAS ============== -->
+  <!-- Phaser.js 3 (motor do jogo) -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+  <!-- Socket.IO (multiplayer) -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <!-- ============== SCRIPTS DO JOGO ============== -->
+  <!-- Ordem importa: config -> utils -> scenes -> main -->
+  <script src="src/config.js"></script>
+  <script src="src/utils/audio.js"></script>
+  <script src="src/utils/network.js"></script>
+  <script src="src/scenes/TrackScene.js"></script>
+  <script src="src/scenes/RaceScene.js"></script>
+  <script src="src/ui.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>

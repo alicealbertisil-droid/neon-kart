@@ -1,0 +1,507 @@
+/* ============================================================
+   NEON KART - ESTILOS
+   ============================================================
+   Estilo: arcade futurista neon. Cores principais:
+     - Magenta:  #ff00ff
+     - Ciano:    #00ffff
+     - Amarelo:  #ffff00
+     - Fundo:    #0a0118 (quase preto roxo)
+   ============================================================ */
+
+/* ------------------- RESET ------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-bg:        #0a0118;
+  --c-bg-2:      #150030;
+  --c-cyan:      #00ffff;
+  --c-magenta:   #ff00ff;
+  --c-pink:      #ff0066;
+  --c-yellow:    #ffff00;
+  --c-green:     #00ff88;
+  --c-purple:    #8800ff;
+  --c-text:      #e8d9ff;
+  --c-muted:     #6f5b8a;
+
+  --font-display: 'Orbitron', sans-serif;
+  --font-body:    'Rajdhani', sans-serif;
+
+  --glow-cyan:    0 0 8px var(--c-cyan), 0 0 20px var(--c-cyan), 0 0 40px rgba(0,255,255,.5);
+  --glow-magenta: 0 0 8px var(--c-magenta), 0 0 20px var(--c-magenta), 0 0 40px rgba(255,0,255,.5);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-body);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ------------------- TELAS (LOBBY x JOGO) ------------------- */
+.screen {
+  position: fixed; inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.screen.active { display: flex; }
+.hidden { display: none !important; }
+
+/* ============================================================
+   LOBBY
+   ============================================================ */
+
+/* Grid neon de fundo */
+.grid-bg {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(var(--c-bg) 0%, var(--c-bg-2) 100%),
+    repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,0,255,.06) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(0,255,255,.06) 39px 40px);
+  background-blend-mode: normal, screen, screen;
+  z-index: 0;
+}
+.grid-bg::after {
+  /* glow central */
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255,0,255,.25), transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(0,255,255,.18), transparent 60%);
+}
+.scanlines {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 2px, transparent 2px 4px);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  z-index: 1;
+}
+
+.lobby-container {
+  position: relative;
+  z-index: 2;
+  width: min(560px, 92vw);
+  max-height: 96vh;
+  overflow-y: auto;
+  padding: 32px 24px;
+}
+
+.title-block { text-align: center; margin-bottom: 24px; }
+.title-tag {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: var(--c-cyan);
+  margin-bottom: 6px;
+  text-shadow: 0 0 6px var(--c-cyan);
+}
+.game-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(48px, 9vw, 78px);
+  letter-spacing: 2px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.title-neon-cyan {
+  color: var(--c-cyan);
+  text-shadow: var(--glow-cyan);
+  animation: flicker-cyan 4s infinite;
+}
+.title-neon-pink {
+  color: var(--c-magenta);
+  text-shadow: var(--glow-magenta);
+  animation: flicker-pink 5s infinite;
+}
+@keyframes flicker-cyan {
+  0%, 92%, 100% { opacity: 1; }
+  93%, 95% { opacity: 0.6; }
+}
+@keyframes flicker-pink {
+  0%, 88%, 100% { opacity: 1; }
+  89%, 91% { opacity: 0.6; }
+}
+.subtitle {
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-top: 10px;
+}
+
+/* Card */
+.card {
+  background: linear-gradient(180deg, rgba(20,4,40,.85) 0%, rgba(10,1,24,.95) 100%);
+  border: 1px solid rgba(0,255,255,.4);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 16px 0;
+  box-shadow:
+    0 0 20px rgba(0,255,255,.15),
+    inset 0 0 30px rgba(255,0,255,.05);
+  position: relative;
+}
+.card::before {
+  /* canto superior esquerdo decorativo */
+  content: '';
+  position: absolute; top: -1px; left: -1px;
+  width: 24px; height: 24px;
+  border-top: 2px solid var(--c-magenta);
+  border-left: 2px solid var(--c-magenta);
+}
+.card::after {
+  content: '';
+  position: absolute; bottom: -1px; right: -1px;
+  width: 24px; height: 24px;
+  border-bottom: 2px solid var(--c-cyan);
+  border-right: 2px solid var(--c-cyan);
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--c-yellow);
+  text-shadow: 0 0 6px rgba(255,255,0,.6);
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* Campos */
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
+.field span {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--c-muted);
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(255,0,255,.4);
+  color: var(--c-text);
+  padding: 10px 12px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  letter-spacing: 1px;
+  outline: none;
+  transition: all .2s;
+  border-radius: 4px;
+}
+.field input:focus {
+  border-color: var(--c-cyan);
+  box-shadow: 0 0 0 2px rgba(0,255,255,.2), 0 0 12px rgba(0,255,255,.4);
+}
+
+/* Botões neon */
+.neon-btn {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 3px;
+  background: transparent;
+  color: var(--c-cyan);
+  border: 2px solid var(--c-cyan);
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: all .2s;
+  text-transform: uppercase;
+  border-radius: 4px;
+  position: relative;
+}
+.neon-btn:hover {
+  background: var(--c-cyan);
+  color: var(--c-bg);
+  box-shadow: var(--glow-cyan);
+}
+.neon-btn.primary {
+  width: 100%;
+  border-color: var(--c-magenta);
+  color: var(--c-magenta);
+  margin-top: 6px;
+}
+.neon-btn.primary:hover {
+  background: var(--c-magenta);
+  color: #fff;
+  box-shadow: var(--glow-magenta);
+}
+.neon-btn.big { padding: 16px 24px; font-size: 16px; }
+.neon-btn.small { padding: 6px 12px; font-size: 11px; }
+.neon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.join-hint {
+  margin-top: 14px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--c-muted);
+}
+
+/* Sala de espera */
+.room-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+.room-info .muted { color: var(--c-muted); margin-right: 6px; font-size: 11px; }
+#room-id-display {
+  color: var(--c-yellow);
+  text-shadow: 0 0 6px rgba(255,255,0,.6);
+}
+
+.players-list-wrap { margin-bottom: 16px; }
+.players-header {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--c-muted);
+  margin-bottom: 8px;
+}
+.players-list { list-style: none; }
+.players-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,.03);
+  border-left: 3px solid var(--c-cyan);
+  font-size: 15px;
+  border-radius: 2px;
+  animation: slide-in .3s ease;
+}
+@keyframes slide-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0);} }
+.players-list li .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+.players-list li .nick { font-weight: 700; }
+.players-list li .habbo {
+  font-size: 12px;
+  color: var(--c-muted);
+  margin-left: auto;
+}
+.players-list li .crown {
+  color: var(--c-yellow);
+  text-shadow: 0 0 6px var(--c-yellow);
+}
+
+.host-controls { margin-top: 16px; text-align: center; }
+.host-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--c-yellow);
+  letter-spacing: 1px;
+}
+.guest-hint {
+  text-align: center;
+  font-size: 14px;
+  color: var(--c-muted);
+  padding: 10px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.lobby-footer {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.muted { color: var(--c-muted); }
+
+/* ============================================================
+   TELA DO JOGO
+   ============================================================ */
+
+#ui-game { background: #000; }
+#game-container { width: 100vw; height: 100vh; }
+#game-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* HUD */
+.hud {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  font-family: var(--font-display);
+}
+.hud-block {
+  position: absolute;
+  background: linear-gradient(180deg, rgba(10,1,24,.85), rgba(20,4,40,.75));
+  border: 1px solid rgba(0,255,255,.4);
+  padding: 10px 14px;
+  border-radius: 4px;
+  box-shadow: 0 0 16px rgba(0,255,255,.15);
+}
+.hud-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--c-cyan);
+  margin-bottom: 4px;
+  text-shadow: 0 0 4px var(--c-cyan);
+}
+.hud-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--c-text);
+  letter-spacing: 2px;
+}
+.hud-value.small { font-size: 14px; }
+
+.top-left  { top: 16px; left: 16px; }
+.top-right { top: 16px; right: 16px; }
+
+.ranking {
+  top: 96px; right: 16px;
+  min-width: 200px;
+}
+.ranking ul { list-style: none; }
+.ranking li {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.ranking li:last-child { border-bottom: none; }
+.ranking li .pos {
+  display: inline-block;
+  min-width: 24px;
+  color: var(--c-yellow);
+  font-weight: 700;
+}
+.ranking li.me { color: var(--c-magenta); text-shadow: 0 0 6px var(--c-magenta); }
+.ranking li.finished { opacity: 0.6; }
+
+.speedo {
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 280px;
+  text-align: center;
+}
+.speed-bar {
+  width: 240px;
+  height: 10px;
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(0,255,255,.3);
+  margin: 4px auto;
+  border-radius: 2px;
+  overflow: hidden;
+}
+#speed-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--c-cyan), var(--c-magenta), var(--c-yellow));
+  box-shadow: 0 0 12px var(--c-magenta);
+  transition: width .1s;
+}
+
+.controls-hint {
+  bottom: 16px; left: 16px;
+  font-size: 12px;
+}
+.controls-hint .keys {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-muted);
+}
+
+/* Countdown 3-2-1-GO */
+.countdown {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: 180px;
+  font-weight: 900;
+  color: var(--c-yellow);
+  text-shadow: 0 0 30px var(--c-yellow), 0 0 60px var(--c-magenta);
+  animation: cd-pop .9s ease-out;
+}
+@keyframes cd-pop {
+  0% { transform: translate(-50%,-50%) scale(2); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(0.6); opacity: 0; }
+}
+
+/* Tela de vitória */
+.victory {
+  position: fixed; inset: 0;
+  background: rgba(10,1,24,.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(6px);
+}
+.victory-card {
+  background: linear-gradient(180deg, rgba(20,4,40,.95), rgba(10,1,24,.98));
+  border: 2px solid var(--c-yellow);
+  box-shadow: 0 0 30px var(--c-yellow), 0 0 60px var(--c-magenta);
+  padding: 36px 40px;
+  border-radius: 8px;
+  min-width: 380px;
+  text-align: center;
+}
+.victory-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  margin: 8px 0 20px;
+  color: var(--c-yellow);
+  text-shadow: 0 0 16px var(--c-yellow);
+}
+.final-ranking {
+  list-style: none;
+  text-align: left;
+  margin: 16px 0;
+}
+.final-ranking li {
+  font-family: var(--font-display);
+  font-size: 16px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,.04);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 4px solid var(--c-cyan);
+}
+.final-ranking li:nth-child(1) { border-left-color: var(--c-yellow); }
+.final-ranking li:nth-child(2) { border-left-color: var(--c-magenta); }
+.final-ranking li:nth-child(3) { border-left-color: var(--c-green); }
+.final-ranking li .medal { font-size: 22px; }
+.final-ranking li .nick { font-weight: 700; }
+.final-ranking li .habbo {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--c-muted);
+}
+.victory-info {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--c-muted);
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,.3); }
+::-webkit-scrollbar-thumb { background: var(--c-magenta); border-radius: 4px; }
