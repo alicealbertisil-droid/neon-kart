@@ -22,6 +22,13 @@
 
   const $ = (id) => document.getElementById(id);
 
+  function setJoinStatus(msg, isError) {
+    const el = $('join-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'join-status' + (msg ? ' visible' : '') + (isError ? ' error' : '');
+  }
+
   // ---------------------------------------------------------
   // 1) Setup inicial da UI
   // ---------------------------------------------------------
@@ -43,10 +50,19 @@
     if (savedNick)  $('input-nickname').value = savedNick;
     if (savedHabbo) $('input-habbo').value = savedHabbo;
 
-    // Conecta na rede (mas só entra na sala quando clicar)
-    window.NK_Net.on('connected', () => console.log('Conectado ao servidor!'));
-    window.NK_Net.on('connectionError', (e) => {
-      alert(`Não foi possível conectar ao servidor.\n\nVerifique se o servidor está rodando ou ajuste SERVER_URL em src/config.js.\n\nErro: ${e.message}`);
+    // Feedback de conexão sem alert spam
+    window.NK_Net.on('connected', () => {
+      setJoinStatus('');
+      $('btn-join').disabled = false;
+      $('btn-join').textContent = 'CONECTAR ››';
+    });
+    window.NK_Net.on('connectionError', () => {
+      setJoinStatus('Servidor acordando, aguardando... ⏳');
+    });
+    window.NK_Net.on('reconnectFailed', () => {
+      setJoinStatus('Não foi possível conectar. Tente novamente.', true);
+      $('btn-join').disabled = false;
+      $('btn-join').textContent = 'CONECTAR ››';
     });
 
     // Registra todos os listeners de jogo
@@ -75,6 +91,10 @@
     window.NK_Audio.init();
     window.NK_Audio.click();
 
+    $('btn-join').disabled = true;
+    $('btn-join').textContent = 'CONECTANDO...';
+    setJoinStatus('');
+
     // Conecta
     window.NK_Net.connect();
 
@@ -82,7 +102,7 @@
     if (window.NK_Net.myId) {
       doJoinRoom();
     } else {
-      window.NK_Net.on('connected', doJoinRoom);
+      window.NK_Net.once('connected', doJoinRoom);
     }
   }
 

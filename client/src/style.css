@@ -237,6 +237,19 @@ html, body {
 .neon-btn.small { padding: 6px 12px; font-size: 11px; }
 .neon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.join-status {
+  margin-top: 10px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--c-yellow);
+  letter-spacing: 1px;
+  min-height: 18px;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.join-status.visible { opacity: 1; }
+.join-status.error { color: var(--c-pink); }
+
 .join-hint {
   margin-top: 14px;
   font-size: 12px;

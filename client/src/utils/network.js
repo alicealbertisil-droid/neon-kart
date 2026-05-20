@@ -26,6 +26,17 @@ const NK_Net = (() => {
     listeners[event].push(cb);
   }
 
+  /** Registra um callback que dispara apenas uma vez */
+  function once(event, cb) {
+    const wrapper = function(data) {
+      cb(data);
+      if (listeners[event]) {
+        listeners[event] = listeners[event].filter(fn => fn !== wrapper);
+      }
+    };
+    on(event, wrapper);
+  }
+
   /** Dispara callbacks registrados */
   function fire(event, data) {
     if (!listeners[event]) return;
@@ -37,7 +48,15 @@ const NK_Net = (() => {
     if (socket) return;
     const url = window.NK_CONFIG.SERVER_URL;
     console.log('[NET] Conectando em', url);
-    socket = io(url, { transports: ['websocket', 'polling'] });
+
+    // polling primeiro: permite que o proxy do Render estabeleça a sessão
+    // antes de tentar o upgrade para WebSocket
+    socket = io(url, {
+      transports: ['polling', 'websocket'],
+      timeout: 30000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+    });
 
     socket.on('connect', () => {
       myId = socket.id;
@@ -48,6 +67,14 @@ const NK_Net = (() => {
     socket.on('connect_error', (err) => {
       console.error('[NET] Erro de conexão:', err.message);
       fire('connectionError', { message: err.message });
+    });
+
+    // Disparado após esgotar todas as tentativas de reconexão
+    socket.io.on('reconnect_failed', () => {
+      socket.disconnect();
+      socket = null;
+      myId = null;
+      fire('reconnectFailed');
     });
 
     socket.on('disconnect', () => {
@@ -100,7 +127,7 @@ const NK_Net = (() => {
   }
 
   return {
-    connect, on,
+    connect, on, once,
     joinRoom, startRace,
     sendUpdate, sendCheckpoint, sendBoostPickup,
     get myId()     { return myId; },
