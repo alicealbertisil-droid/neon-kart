@@ -258,6 +258,129 @@ const NK_UI = (() => {
     });
   }
 
+  // ------------------- POPUP DE ITEM RECEBIDO -------------------
+  const ITEM_INFO = {
+    banana:  { emoji: '🍌', name: 'BANANA',     color: '#ffeb3b',
+               desc: 'Solta atrás de você' },
+    cone:    { emoji: '🚧', name: 'CONE',       color: '#ff6b00',
+               desc: 'Solta atrás de você' },
+    turbo:   { emoji: '🚀', name: 'TURBO!',     color: '#00ff88',
+               desc: 'Boost de velocidade!' },
+    escudo:  { emoji: '🛡️', name: 'ESCUDO',    color: '#00ffff',
+               desc: 'Proteção por 3 segundos' },
+    raio:    { emoji: '⚡', name: 'RAIO',       color: '#ffff00',
+               desc: 'Atinge todos os outros!' }
+  };
+
+  function showItemPopup(item) {
+    const info = ITEM_INFO[item];
+    if (!info) return;
+    let pop = document.getElementById('item-popup');
+    if (!pop) {
+      pop = document.createElement('div');
+      pop.id = 'item-popup';
+      pop.className = 'item-popup';
+      document.body.appendChild(pop);
+    }
+    pop.innerHTML = `
+      <div class="ip-emoji">${info.emoji}</div>
+      <div class="ip-text">
+        <div class="ip-name" style="color:${info.color};text-shadow:0 0 8px ${info.color}">${info.name}</div>
+        <div class="ip-desc">${info.desc}</div>
+      </div>
+    `;
+    pop.classList.remove('hidden');
+    pop.classList.remove('ip-show');
+    void pop.offsetWidth; // restart animation
+    pop.classList.add('ip-show');
+    setTimeout(() => {
+      pop.classList.add('hidden');
+    }, 1800);
+  }
+
+  // ------------------- MODAL "MODO DE JOGAR" -------------------
+  function showHowToPlay() {
+    let modal = document.getElementById('how-to-play');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'how-to-play';
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal-card">
+          <button class="modal-close" aria-label="Fechar">&times;</button>
+          <h2 class="modal-title">::: COMO JOGAR :::</h2>
+
+          <div class="modal-section">
+            <h3>🎯 OBJETIVO</h3>
+            <p>Complete <strong>3 voltas</strong> na pista antes dos outros pilotos!</p>
+          </div>
+
+          <div class="modal-section">
+            <h3>🕹️ CONTROLES</h3>
+            <p><strong>PC:</strong> W/↑ acelera · S/↓ freia/ré · A/← esquerda · D/→ direita</p>
+            <p><strong>Mobile:</strong> Use os botões na tela</p>
+          </div>
+
+          <div class="modal-section">
+            <h3>⚡ NA PISTA</h3>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#00ff88">⚡</span>
+              <div><strong>Boost (verde):</strong> dá um impulso de velocidade</div>
+            </div>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#ffeb3b">🍌</span>
+              <div><strong>Banana:</strong> se pisar, seu carro gira descontrolado e perde velocidade</div>
+            </div>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#ff6b00">🚧</span>
+              <div><strong>Cone:</strong> se bater, perde velocidade e é empurrado</div>
+            </div>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#ffd700">❓</span>
+              <div><strong>Caixa de item:</strong> dá um poder aleatório (usa automaticamente)</div>
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <h3>🎁 PODERES POSSÍVEIS</h3>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#00ff88">🚀</span>
+              <div><strong>Turbo:</strong> boost de velocidade extra</div>
+            </div>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#00ffff">🛡️</span>
+              <div><strong>Escudo:</strong> protege por 3 segundos de bananas, cones e raios</div>
+            </div>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#ffff00">⚡</span>
+              <div><strong>Raio (raro!):</strong> deixa <em>todos</em> os outros pilotos lentos por 1 segundo</div>
+            </div>
+            <div class="modal-item">
+              <span class="mi-icon" style="color:#ffeb3b">🍌</span>
+              <div><strong>Banana/Cone:</strong> solta um obstáculo atrás do seu carro</div>
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <h3>⚠️ ATENÇÃO</h3>
+            <p>Se ficar fora da pista por mais de <strong>2 segundos</strong>, seu carro volta para a largada (sem perder voltas).</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      // Fecha ao clicar no X ou fora do card
+      modal.querySelector('.modal-close').addEventListener('click', hideHowToPlay);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideHowToPlay();
+      });
+    }
+    modal.classList.remove('hidden');
+  }
+  function hideHowToPlay() {
+    const modal = document.getElementById('how-to-play');
+    if (modal) modal.classList.add('hidden');
+  }
+
   return {
     el,
     showLobby, showGame,
@@ -265,7 +388,9 @@ const NK_UI = (() => {
     renderPlayersList, renderRanking,
     showVictory, hideVictory, updateVictoryControls,
     getRoomIdFromURL, syncRoomToURL,
-    copyShareLink
+    copyShareLink,
+    showItemPopup,
+    showHowToPlay, hideHowToPlay
   };
 })();
 
