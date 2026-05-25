@@ -139,6 +139,20 @@ const NK_Track = {
   ],
 
   /**
+   * Caixas de Item (com "?"). Cada uma dá um poder aleatório.
+   * Distribuídas em pontos estratégicos da pista (~7 caixas).
+   */
+  itemBoxes: [
+    { id: 'ib1', x: 1700, y: 3000 },   // reta inicial
+    { id: 'ib2', x: 3700, y: 2980 },   // reta inicial (mais à frente)
+    { id: 'ib3', x: 5550, y: 2200 },   // subida direita
+    { id: 'ib4', x: 4450, y: 1050 },   // topo
+    { id: 'ib5', x: 2700, y: 1300 },   // descida do S
+    { id: 'ib6', x: 1200, y: 1280 },   // subida pela esquerda
+    { id: 'ib7', x: 380,  y: 2400 }    // lateral esquerda
+  ],
+
+  /**
    * Posições do grid de largada (em frente à linha de chegada).
    * 20 posições na mesma linha de largada (x=1150), centralizadas na pista.
    * Track center y=3000, halfWidth=140. Grid ocupa ±66px do centro,
@@ -401,6 +415,60 @@ const NK_Track = {
       // (Removido o tween de "wiggle" infinito pra economizar performance no mobile)
 
       this.bananaSprites.push(banGfx);
+    });
+
+    // ----- 9) CAIXAS DE ITEM (com "?") -----
+    this.itemBoxSprites = [];
+    this.itemBoxes.forEach(b => {
+      // Container pra agrupar caixa + texto "?"
+      const boxContainer = scene.add.container(b.x, b.y);
+
+      // Glow externo
+      const glow = scene.add.graphics();
+      glow.fillStyle(0xffaa00, 0.25);
+      glow.fillCircle(0, 0, 32);
+      glow.fillStyle(0xffff00, 0.15);
+      glow.fillCircle(0, 0, 24);
+      boxContainer.add(glow);
+
+      // Sombra
+      const shadow = scene.add.graphics();
+      shadow.fillStyle(0x000000, 0.5);
+      shadow.fillEllipse(0, 14, 32, 8);
+      boxContainer.add(shadow);
+
+      // Cubo amarelo/laranja (caixa)
+      const box = scene.add.graphics();
+      // gradiente simples: amarelo no topo, laranja embaixo
+      box.fillStyle(0xffd700, 1);
+      box.fillRoundedRect(-14, -14, 28, 28, 4);
+      // brilho no canto superior
+      box.fillStyle(0xffffaa, 0.7);
+      box.fillRoundedRect(-12, -12, 10, 8, 2);
+      // contorno escuro
+      box.lineStyle(2, 0xaa6600, 1);
+      box.strokeRoundedRect(-14, -14, 28, 28, 4);
+      boxContainer.add(box);
+
+      // "?" centralizado
+      const qmark = scene.add.text(0, 0, '?', {
+        fontFamily: 'Orbitron, sans-serif',
+        fontSize: '22px',
+        fontStyle: 'bold',
+        color: '#5d3a00'
+      });
+      qmark.setOrigin(0.5);
+      boxContainer.add(qmark);
+
+      boxContainer.setDepth(6);
+      boxContainer.boxId = b.id;
+      boxContainer.boxX = b.x;
+      boxContainer.boxY = b.y;
+      boxContainer.active = true;
+
+      // (Sem tween infinito de pulsação — economia de performance)
+
+      this.itemBoxSprites.push(boxContainer);
     });
   },
 
