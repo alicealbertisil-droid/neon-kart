@@ -31,13 +31,13 @@ const NK_CONFIG = {
   /* ----- OBSTÁCULOS ----- */
   OBSTACLES: {
     CONE: {
-      RADIUS: 14,           // raio de colisão do cone (px)
+      RADIUS: 22,           // raio de colisão do cone (px) - AUMENTADO
       SPEED_PENALTY: 0.4,   // reduz velocidade a 40% ao bater
       KNOCKBACK: 80,        // empurrão lateral em px ao bater
       COOLDOWN_MS: 800      // tempo até o cone "ressetar" depois de atingido
     },
     BANANA: {
-      RADIUS: 18,           // raio de "pisada"
+      RADIUS: 28,           // raio de "pisada" - AUMENTADO
       SPIN_MS: 900,         // tempo girando descontrolado (ms)
       SPEED_PENALTY: 0.3,   // velocidade fica em 30% durante o efeito
       RESPAWN_MS: 6000      // tempo pra banana reaparecer depois de pisada
