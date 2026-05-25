@@ -324,29 +324,29 @@ const NK_Track = {
 
       // Sombra
       coneGfx.fillStyle(0x000000, 0.5);
-      coneGfx.fillEllipse(0, 10, 22, 8);
+      coneGfx.fillEllipse(0, 16, 34, 12);
 
       // Base (faixa preta)
       coneGfx.fillStyle(0x1a0530, 1);
-      coneGfx.fillRect(-12, 6, 24, 6);
+      coneGfx.fillRect(-18, 10, 36, 9);
 
-      // Triângulo laranja do cone
+      // Triângulo laranja do cone (maior!)
       coneGfx.fillStyle(0xff6b00, 1);
       coneGfx.beginPath();
-      coneGfx.moveTo(-10, 6);
-      coneGfx.lineTo(0, -14);
-      coneGfx.lineTo(10, 6);
+      coneGfx.moveTo(-15, 10);
+      coneGfx.lineTo(0, -22);
+      coneGfx.lineTo(15, 10);
       coneGfx.closePath();
       coneGfx.fillPath();
 
       // Listras brancas refletivas
       coneGfx.fillStyle(0xffffff, 0.9);
-      coneGfx.fillRect(-7, -2, 14, 2);
-      coneGfx.fillRect(-9, 2, 18, 2);
+      coneGfx.fillRect(-11, -3, 22, 3);
+      coneGfx.fillRect(-13, 3, 26, 3);
 
       // Glow neon laranja
       coneGfx.fillStyle(0xff6b00, 0.25);
-      coneGfx.fillCircle(0, -2, 18);
+      coneGfx.fillCircle(0, -2, 26);
 
       coneGfx.setDepth(5);
       coneGfx.coneId = c.id;
@@ -365,24 +365,32 @@ const NK_Track = {
 
       // Sombra
       banGfx.fillStyle(0x000000, 0.4);
-      banGfx.fillEllipse(0, 6, 24, 6);
+      banGfx.fillEllipse(0, 10, 38, 10);
 
-      // Corpo amarelo da banana (forma de meia-lua)
+      // Corpo amarelo da banana (forma de meia-lua) - MAIOR
       banGfx.fillStyle(0xffeb3b, 1);
       banGfx.beginPath();
-      banGfx.arc(-2, 0, 10, Math.PI * 0.15, Math.PI * 1.05, false);
-      banGfx.arc(-2, 0, 6, Math.PI * 1.05, Math.PI * 0.15, true);
+      banGfx.arc(-3, 0, 16, Math.PI * 0.15, Math.PI * 1.05, false);
+      banGfx.arc(-3, 0, 9, Math.PI * 1.05, Math.PI * 0.15, true);
       banGfx.closePath();
       banGfx.fillPath();
 
+      // Contorno escuro (deixa mais visível)
+      banGfx.lineStyle(2, 0x8a5a00, 1);
+      banGfx.beginPath();
+      banGfx.arc(-3, 0, 16, Math.PI * 0.15, Math.PI * 1.05, false);
+      banGfx.arc(-3, 0, 9, Math.PI * 1.05, Math.PI * 0.15, true);
+      banGfx.closePath();
+      banGfx.strokePath();
+
       // Pontinhas marrons
       banGfx.fillStyle(0x5d3a00, 1);
-      banGfx.fillCircle(-12, -1, 2);
-      banGfx.fillCircle(7, 4, 2);
+      banGfx.fillCircle(-18, -2, 3);
+      banGfx.fillCircle(11, 6, 3);
 
       // Brilho amarelo neon
       banGfx.fillStyle(0xffeb3b, 0.3);
-      banGfx.fillCircle(0, 0, 16);
+      banGfx.fillCircle(0, 0, 24);
 
       banGfx.setDepth(5);
       banGfx.bananaId = b.id;
@@ -390,15 +398,7 @@ const NK_Track = {
       banGfx.bananaY = b.y;
       banGfx.active = true;
 
-      // Animação leve de "wiggle"
-      scene.tweens.add({
-        targets: banGfx,
-        angle: { from: -8, to: 8 },
-        duration: 1200,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-      });
+      // (Removido o tween de "wiggle" infinito pra economizar performance no mobile)
 
       this.bananaSprites.push(banGfx);
     });
