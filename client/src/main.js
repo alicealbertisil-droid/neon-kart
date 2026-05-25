@@ -30,55 +30,129 @@
   }
 
   // ---------------------------------------------------------
-  // Touch controls
+  // Touch controls — ROBUSTOS
+  // Usa Pointer Events (substitui touch + mouse com uma API só)
+  // e mantém o botão "preso" mesmo se o dedo escorregar pra fora.
   // ---------------------------------------------------------
   window.NK_Touch = { up: false, down: false, left: false, right: false };
 
+  // Detecta se é dispositivo touch / mobile
+  window.NK_IsMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0
+    || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  // Helper: pequena vibração (se suportado)
+  function haptic(ms) {
+    if (navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch (e) {}
+    }
+  }
+
   function setupTouchControls() {
-    const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-    if (!isTouchDevice) return;
+    if (!window.NK_IsMobile) return;
+
+    // Rastreia qual pointerId está em cada botão (suporta multi-touch)
+    const activePointers = {}; // pointerId -> key
 
     function bind(id, key) {
       const btn = $(id);
       if (!btn) return;
+
       const press = (e) => {
         e.preventDefault();
+        // Captura o ponteiro: a partir daqui, mesmo que o dedo escorregue
+        // pra fora do botão, continuamos recebendo os eventos dele
+        if (e.pointerId !== undefined && btn.setPointerCapture) {
+          try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+          activePointers[e.pointerId] = key;
+        }
         window.NK_Touch[key] = true;
         btn.classList.add('active');
+        // Vibra rapidinho ao pressionar (feedback tátil)
+        haptic(15);
       };
+
       const release = (e) => {
         e.preventDefault();
+        if (e.pointerId !== undefined && activePointers[e.pointerId]) {
+          delete activePointers[e.pointerId];
+        }
         window.NK_Touch[key] = false;
         btn.classList.remove('active');
       };
-      btn.addEventListener('touchstart', press, { passive: false });
-      btn.addEventListener('touchend', release, { passive: false });
+
+      // Pointer Events: cobre touch, mouse e caneta com a mesma API
+      btn.addEventListener('pointerdown',   press,   { passive: false });
+      btn.addEventListener('pointerup',     release, { passive: false });
+      btn.addEventListener('pointercancel', release, { passive: false });
+      // Fallback pra navegadores sem Pointer Events
+      btn.addEventListener('touchstart',  press,   { passive: false });
+      btn.addEventListener('touchend',    release, { passive: false });
       btn.addEventListener('touchcancel', release, { passive: false });
-      // Also support mouse for testing on desktop
-      btn.addEventListener('mousedown', press);
-      btn.addEventListener('mouseup', release);
-      btn.addEventListener('mouseleave', release);
     }
 
     bind('tc-gas',   'up');
     bind('tc-brake', 'down');
     bind('tc-left',  'left');
     bind('tc-right', 'right');
+
+    // Safety: se a janela perder o foco (alt-tab, ligação, etc),
+    // libera tudo pra evitar carro travado acelerando sozinho
+    window.addEventListener('blur', () => {
+      Object.keys(window.NK_Touch).forEach(k => { window.NK_Touch[k] = false; });
+      document.querySelectorAll('.tc-btn.active').forEach(b => b.classList.remove('active'));
+    });
   }
 
   function showTouchControls() {
-    const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-    if (!isTouchDevice) return;
+    if (!window.NK_IsMobile) return;
     const el = $('touch-controls');
     if (el) el.classList.remove('hidden');
+    // Adiciona classe no body pra ativar tweaks de CSS mobile
+    document.body.classList.add('is-mobile-playing');
+    // Aviso de orientação retrato (só em mobile)
+    maybeShowRotateHint();
   }
 
   function hideTouchControls() {
     const el = $('touch-controls');
     if (el) el.classList.add('hidden');
+    document.body.classList.remove('is-mobile-playing');
     // Reset all states
     Object.keys(window.NK_Touch).forEach(k => { window.NK_Touch[k] = false; });
+    document.querySelectorAll('.tc-btn.active').forEach(b => b.classList.remove('active'));
+    hideRotateHint();
   }
+
+  // ---------------------------------------------------------
+  // Aviso de "vire o celular" — só aparece em mobile retrato
+  // ---------------------------------------------------------
+  function maybeShowRotateHint() {
+    if (!window.NK_IsMobile) return;
+    let el = document.getElementById('rotate-hint');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'rotate-hint';
+      el.innerHTML = '<div class="rh-icon">📱↻</div><div class="rh-text">VIRE O CELULAR<br><span>melhor experiência na horizontal</span></div>';
+      document.body.appendChild(el);
+    }
+    const portrait = window.matchMedia('(orientation: portrait)').matches;
+    el.style.display = portrait ? 'flex' : 'none';
+  }
+  function hideRotateHint() {
+    const el = document.getElementById('rotate-hint');
+    if (el) el.style.display = 'none';
+  }
+  // Reavalia quando o usuário girar
+  window.addEventListener('orientationchange', () => {
+    if (document.body.classList.contains('is-mobile-playing')) {
+      setTimeout(maybeShowRotateHint, 200);
+    }
+  });
+  window.addEventListener('resize', () => {
+    if (document.body.classList.contains('is-mobile-playing')) {
+      maybeShowRotateHint();
+    }
+  });
 
   // ---------------------------------------------------------
   // 1) Setup inicial da UI
