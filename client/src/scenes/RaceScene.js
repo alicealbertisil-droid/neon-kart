@@ -133,15 +133,22 @@ class RaceScene extends Phaser.Scene {
     container.body.setCollideWorldBounds(true);
 
     // Nome do jogador sobre o carro
+    // No mobile, usa fonte menor e sem stroke pra economizar performance
+    // (text com stroke é caro de renderizar a cada frame)
+    const isMobile = !!window.NK_IsMobile;
     const nameText = this.add.text(x, y - 30,
       playerInfo.nickname + (playerInfo.habboNick ? ` (${playerInfo.habboNick})` : ''),
       {
         fontFamily: 'Orbitron, sans-serif',
-        fontSize: '12px',
+        fontSize: isMobile ? '11px' : '12px',
         color: playerInfo.color,
-        stroke: '#000000',
-        strokeThickness: 3,
-        align: 'center'
+        stroke: isMobile ? '' : '#000000',
+        strokeThickness: isMobile ? 0 : 3,
+        align: 'center',
+        // No mobile usa sombra leve em vez de stroke (mais barato)
+        ...(isMobile ? {
+          shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 2, fill: true }
+        } : {})
       }
     );
     nameText.setOrigin(0.5);
@@ -429,12 +436,11 @@ class RaceScene extends Phaser.Scene {
         font-weight: 900;
         font-size: clamp(20px, 3.5vw, 38px);
         color: #ff3366;
-        text-shadow: 0 0 12px #ff3366, 0 0 24px #ff0044;
+        text-shadow: 0 0 12px #ff3366;
         letter-spacing: 2px;
         text-align: center;
         z-index: 1000;
         pointer-events: none;
-        animation: pulse 0.6s infinite;
       `;
       const hud = document.getElementById('hud') || document.body;
       hud.appendChild(el);
@@ -511,8 +517,8 @@ class RaceScene extends Phaser.Scene {
         });
         // Som de batida (usa o engine pra "engasgar") + vibração forte
         if (navigator.vibrate) { try { navigator.vibrate(80); } catch(e){} }
-        // Camera shake leve
-        this.cameras.main.shake(150, 0.008);
+        // Camera shake leve (só no desktop — no mobile causava sensação de trava)
+        if (!this.isMobile) this.cameras.main.shake(150, 0.008);
       }
     });
 
@@ -531,8 +537,8 @@ class RaceScene extends Phaser.Scene {
         // Penaliza velocidade já
         car.speed *= banCfg.SPEED_PENALTY;
         if (navigator.vibrate) { try { navigator.vibrate([60, 50, 60, 50, 60]); } catch(e){} }
-        // Camera shake mais forte
-        this.cameras.main.shake(200, 0.012);
+        // Camera shake (só no desktop)
+        if (!this.isMobile) this.cameras.main.shake(200, 0.012);
         // Banana volta depois de RESPAWN_MS
         this.time.delayedCall(banCfg.RESPAWN_MS, () => {
           b.active = true;
