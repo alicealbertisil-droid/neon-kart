@@ -352,6 +352,8 @@
   // 5) Configura e inicia Phaser
   // ---------------------------------------------------------
   function startPhaser() {
+    const isMobile = !!window.NK_IsMobile;
+
     const config = {
       type: Phaser.AUTO,
       parent: 'game-container',
@@ -360,18 +362,31 @@
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
+        // No mobile, limita o "device pixel ratio" pra não renderizar em 3x
+        // (telas modernas de celular têm DPR 2 ou 3 — isso significa renderizar
+        // 4x ou 9x MAIS pixels que o necessário). Isso é o maior ganho de FPS.
+        ...(isMobile ? { zoom: 1, resolution: 1 } : {})
       },
       physics: {
         default: 'arcade',
         arcade: { debug: false, gravity: { x: 0, y: 0 } }
       },
       scene: [window.RaceScene],
-      // otimização
       render: {
+        // No mobile, desliga antialias (visual menos suave, mas MUITO mais rápido)
         pixelArt: false,
-        antialias: true,
-        roundPixels: false
+        antialias: !isMobile,
+        roundPixels: isMobile,         // arredonda pixels no mobile (mais rápido)
+        powerPreference: 'high-performance',
+        // Mobile geralmente se beneficia mais do canvas 2D do que do WebGL pesado
+        // mas WEBGL ainda é mais rápido NA MAIORIA dos casos — Phaser.AUTO já escolhe
+        batchSize: isMobile ? 2048 : 4096
+      },
+      fps: {
+        target: 60,
+        forceSetTimeOut: false,
+        smoothStep: true
       }
     };
     phaserGame = new Phaser.Game(config);
