@@ -503,13 +503,20 @@ html, body {
 /* Tela de vitória */
 .victory {
   position: fixed; inset: 0;
-  background: rgba(10,1,24,.88);
+  /* Fundo sólido (sem alfa) pra evitar mostrar canvas preto por baixo no mobile */
+  background:
+    radial-gradient(ellipse at top, rgba(255,0,255,.18), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(0,255,255,.18), transparent 60%),
+    #0a0118;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
   backdrop-filter: blur(6px);
   overflow-y: auto;
+  /* Garante padding vertical pra rolar quando o conteúdo for maior que tela */
+  padding: 16px 8px;
+  box-sizing: border-box;
 }
 .victory-card {
   background: linear-gradient(180deg, rgba(20,4,40,.95), rgba(10,1,24,.98));
@@ -721,8 +728,8 @@ html, body {
 .tc-actions { flex-direction: row; align-items: flex-end; }
 
 .tc-btn {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   border: 2px solid var(--c-cyan);
   background: rgba(0,255,255,.14);
@@ -730,7 +737,7 @@ html, body {
   -webkit-backdrop-filter: blur(6px);
   color: var(--c-cyan);
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 900;
   display: flex;
   align-items: center;
@@ -751,9 +758,9 @@ html, body {
 }
 
 .tc-gas {
-  width: 74px;
-  height: 74px;
-  font-size: 26px;
+  width: 86px;
+  height: 86px;
+  font-size: 30px;
   border-color: var(--c-green);
   background: rgba(0,255,136,.18);
   color: var(--c-green);
@@ -766,8 +773,8 @@ html, body {
 }
 
 .tc-brake {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-color: var(--c-pink);
   background: rgba(255,0,102,.16);
   color: var(--c-pink);
@@ -868,10 +875,10 @@ html, body {
   .countdown { font-size: clamp(80px, 22vw, 160px); }
 
   /* ----- TOUCH CONTROLS mobile ----- */
-  /* Botões compactos pra não atrapalhar a visão da pista */
-  .tc-btn { width: 56px; height: 56px; font-size: 18px; }
-  .tc-gas { width: 68px; height: 68px; font-size: 22px; }
-  .tc-brake { width: 56px; height: 56px; }
+  /* Tamanhos um pouco maiores no mobile pra facilitar o toque */
+  .tc-btn { width: 66px; height: 66px; font-size: 22px; }
+  .tc-gas { width: 80px; height: 80px; font-size: 28px; }
+  .tc-brake { width: 66px; height: 66px; }
 
   /* ----- VITÓRIA ----- */
   .victory-card { padding: 20px 14px 16px; min-width: 0; border-radius: 8px; }
@@ -889,9 +896,9 @@ html, body {
 
 /* Telas EXTRA pequenas (iPhone SE etc) */
 @media (max-width: 380px) {
-  .tc-btn { width: 50px; height: 50px; font-size: 16px; }
-  .tc-gas { width: 60px; height: 60px; font-size: 20px; }
-  .tc-brake { width: 50px; height: 50px; }
+  .tc-btn { width: 58px; height: 58px; font-size: 19px; }
+  .tc-gas { width: 70px; height: 70px; font-size: 24px; }
+  .tc-brake { width: 58px; height: 58px; }
   .tc-steer, .tc-actions { gap: 10px; }
   .touch-controls { padding: 8px 10px max(10px, env(safe-area-inset-bottom)); }
 }
