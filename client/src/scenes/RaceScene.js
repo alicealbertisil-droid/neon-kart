@@ -56,10 +56,13 @@ class RaceScene extends Phaser.Scene {
     // Define meu carro como referência
     this.myCar = this.cars[this.myId];
     if (this.myCar) {
-      // Zoom igual em desktop e mobile (1.0 — sem ampliação)
       this.isMobile = !!window.NK_IsMobile;
+      // No mobile o landscape é estreito (pouca altura): câmera mais AFASTADA
+      // (zoom < 1.0) faz ver mais pista pela frente, compensando o aspecto.
+      // No PC mantemos 1.0.
+      const zoom = this.isMobile ? 0.8 : 1.0;
       this.cameras.main.startFollow(this.myCar.sprite, true, 0.1, 0.1);
-      this.cameras.main.setZoom(1.0);
+      this.cameras.main.setZoom(zoom);
     }
 
     // ----- INPUT -----
