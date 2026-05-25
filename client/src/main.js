@@ -170,6 +170,12 @@
       window.NK_Net.sendReadyToLobby();
     });
 
+    // Botões "Modo de Jogar" (existem 2: um na tela inicial, outro no lobby)
+    const btn1 = $('btn-how-to-play-1');
+    const btn2 = $('btn-how-to-play-2');
+    if (btn1) btn1.addEventListener('click', () => window.NK_UI.showHowToPlay());
+    if (btn2) btn2.addEventListener('click', () => window.NK_UI.showHowToPlay());
+
     // Configura os botões de touch
     setupTouchControls();
 
