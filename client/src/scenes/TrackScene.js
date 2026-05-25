@@ -22,46 +22,46 @@ const NK_Track = {
    */
   waypoints: [
     // Reta de largada (parte de baixo, indo para a direita)
-    { x: 600,  y: 2000 },
-    { x: 1200, y: 2000 },
-    { x: 1800, y: 2000 },
-    { x: 2400, y: 2000 },
-    { x: 3000, y: 2000 },
+    { x: 900,  y: 3000 },
+    { x: 1800, y: 3000 },
+    { x: 2700, y: 3000 },
+    { x: 3600, y: 3000 },
+    { x: 4500, y: 3000 },
     // Curva à direita (sobe)
-    { x: 3400, y: 1900 },
-    { x: 3600, y: 1700 },
-    { x: 3700, y: 1500 },
-    { x: 3700, y: 1300 },
-    { x: 3700, y: 1100 },
+    { x: 5100, y: 2850 },
+    { x: 5400, y: 2550 },
+    { x: 5550, y: 2250 },
+    { x: 5550, y: 1950 },
+    { x: 5550, y: 1650 },
     // Curva no topo direito
-    { x: 3600, y: 900 },
-    { x: 3400, y: 750 },
-    { x: 3100, y: 700 },
+    { x: 5400, y: 1350 },
+    { x: 5100, y: 1125 },
+    { x: 4650, y: 1050 },
     // Reta superior (volta para a esquerda)
-    { x: 2700, y: 700 },
-    { x: 2300, y: 700 },
+    { x: 4050, y: 1050 },
+    { x: 3450, y: 1050 },
     // "S" no meio: desce
-    { x: 2000, y: 800 },
-    { x: 1900, y: 1000 },
-    { x: 2000, y: 1200 },
+    { x: 3000, y: 1200 },
+    { x: 2850, y: 1500 },
+    { x: 3000, y: 1800 },
     // sobe de novo
-    { x: 2100, y: 1300 },
-    { x: 1900, y: 1400 },
-    { x: 1600, y: 1300 },
+    { x: 3150, y: 1950 },
+    { x: 2850, y: 2100 },
+    { x: 2400, y: 1950 },
     // Continua à esquerda
-    { x: 1300, y: 1100 },
-    { x: 1000, y: 900 },
-    { x: 700,  y: 800 },
+    { x: 1950, y: 1650 },
+    { x: 1500, y: 1350 },
+    { x: 1050, y: 1200 },
     // Curva esquerda topo
-    { x: 400,  y: 900 },
-    { x: 300,  y: 1100 },
-    { x: 300,  y: 1300 },
-    { x: 300,  y: 1500 },
-    { x: 300,  y: 1700 },
+    { x: 600,  y: 1350 },
+    { x: 450,  y: 1650 },
+    { x: 450,  y: 1950 },
+    { x: 450,  y: 2250 },
+    { x: 450,  y: 2550 },
     // Curva esquerda inferior
-    { x: 400,  y: 1900 },
+    { x: 600,  y: 2850 },
     // Volta para a reta de largada
-    { x: 600,  y: 2000 }
+    { x: 900,  y: 3000 }
   ],
 
   /**
@@ -69,8 +69,8 @@ const NK_Track = {
    * Definida por dois pontos (x1,y1)-(x2,y2)
    */
   finishLine: {
-    x1: 900, y1: 1880,
-    x2: 900, y2: 2120,
+    x1: 1350, y1: 2820,
+    x2: 1350, y2: 3180,
     angle: 0 // direção da pista neste ponto (em radianos)
   },
 
@@ -81,52 +81,52 @@ const NK_Track = {
    */
   checkpoints: [
     // [x1,y1, x2,y2]
-    [3700, 1400, 3500, 1400],   // CP1 - lateral direita
-    [2700, 600,  2700, 800],    // CP2 - reta superior
-    [1900, 1100, 2100, 1100],   // CP3 - meio (descida do S)
-    [300,  1500, 500,  1500]    // CP4 - lateral esquerda
+    [5550, 2100, 5250, 2100],   // CP1 - lateral direita
+    [4050, 900,  4050, 1200],   // CP2 - reta superior
+    [2850, 1650, 3150, 1650],   // CP3 - meio (descida do S)
+    [450,  2250, 750,  2250]    // CP4 - lateral esquerda
   ],
 
   /**
    * Posições dos boosts na pista
    */
   boosts: [
-    { id: 1, x: 1500, y: 2000 },
-    { id: 2, x: 2700, y: 2000 },
-    { id: 3, x: 3700, y: 1300 },
-    { id: 4, x: 3100, y: 700 },
-    { id: 5, x: 2000, y: 1000 },
-    { id: 6, x: 1000, y: 900 },
-    { id: 7, x: 300,  y: 1500 }
+    { id: 1, x: 2250, y: 3000 },
+    { id: 2, x: 4050, y: 3000 },
+    { id: 3, x: 5550, y: 1950 },
+    { id: 4, x: 4650, y: 1050 },
+    { id: 5, x: 3000, y: 1500 },
+    { id: 6, x: 1500, y: 1350 },
+    { id: 7, x: 450,  y: 2250 }
   ],
 
   /**
    * Posições do grid de largada (em frente à linha de chegada).
-   * 20 posições na mesma linha de largada (x=750), centralizadas na pista.
-   * Track center y=2000, halfWidth=110. Grid ocupa ±57px do centro,
-   * deixando 53px livres de cada borda (step=6px).
+   * 20 posições na mesma linha de largada (x=1150), centralizadas na pista.
+   * Track center y=3000, halfWidth=140. Grid ocupa ±66px do centro,
+   * deixando ~70px livres de cada borda (step=7px).
    */
   startGrid: [
-    { x: 750, y: 1943, angle: 0 },
-    { x: 750, y: 1949, angle: 0 },
-    { x: 750, y: 1955, angle: 0 },
-    { x: 750, y: 1961, angle: 0 },
-    { x: 750, y: 1967, angle: 0 },
-    { x: 750, y: 1973, angle: 0 },
-    { x: 750, y: 1979, angle: 0 },
-    { x: 750, y: 1985, angle: 0 },
-    { x: 750, y: 1991, angle: 0 },
-    { x: 750, y: 1997, angle: 0 },
-    { x: 750, y: 2003, angle: 0 },
-    { x: 750, y: 2009, angle: 0 },
-    { x: 750, y: 2015, angle: 0 },
-    { x: 750, y: 2021, angle: 0 },
-    { x: 750, y: 2027, angle: 0 },
-    { x: 750, y: 2033, angle: 0 },
-    { x: 750, y: 2039, angle: 0 },
-    { x: 750, y: 2045, angle: 0 },
-    { x: 750, y: 2051, angle: 0 },
-    { x: 750, y: 2057, angle: 0 }
+    { x: 1150, y: 2934, angle: 0 },
+    { x: 1150, y: 2941, angle: 0 },
+    { x: 1150, y: 2948, angle: 0 },
+    { x: 1150, y: 2955, angle: 0 },
+    { x: 1150, y: 2962, angle: 0 },
+    { x: 1150, y: 2969, angle: 0 },
+    { x: 1150, y: 2976, angle: 0 },
+    { x: 1150, y: 2983, angle: 0 },
+    { x: 1150, y: 2990, angle: 0 },
+    { x: 1150, y: 2997, angle: 0 },
+    { x: 1150, y: 3004, angle: 0 },
+    { x: 1150, y: 3011, angle: 0 },
+    { x: 1150, y: 3018, angle: 0 },
+    { x: 1150, y: 3025, angle: 0 },
+    { x: 1150, y: 3032, angle: 0 },
+    { x: 1150, y: 3039, angle: 0 },
+    { x: 1150, y: 3046, angle: 0 },
+    { x: 1150, y: 3053, angle: 0 },
+    { x: 1150, y: 3060, angle: 0 },
+    { x: 1150, y: 3067, angle: 0 }
   ],
 
   /**
