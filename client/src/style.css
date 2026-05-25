@@ -512,7 +512,6 @@ html, body {
   align-items: center;
   justify-content: center;
   z-index: 100;
-  backdrop-filter: blur(6px);
   overflow-y: auto;
   /* Garante padding vertical pra rolar quando o conteúdo for maior que tela */
   padding: 16px 8px;
@@ -732,9 +731,11 @@ html, body {
   height: 70px;
   border-radius: 50%;
   border: 2px solid var(--c-cyan);
-  background: rgba(0,255,255,.14);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* IMPORTANTE: sem backdrop-filter / blur — esses efeitos derrubam o FPS
+     no mobile porque o navegador tem que pegar o canvas inteiro do Phaser,
+     borrar e desenhar atrás dos botões a cada frame. Usamos fundo sólido
+     com transparência simples (que é praticamente grátis) no lugar. */
+  background: rgba(0,15,30,.55);
   color: var(--c-cyan);
   font-family: var(--font-display);
   font-size: 24px;
@@ -747,13 +748,14 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
-  transition: background .08s, box-shadow .08s, transform .08s;
-  box-shadow: 0 0 12px rgba(0,255,255,.28), inset 0 0 6px rgba(0,255,255,.06);
+  transition: background .08s, transform .08s;
+  /* Box-shadow simples (só um, não vários) pra reduzir custo de pintura */
+  box-shadow: 0 0 10px rgba(0,255,255,.5);
 }
 .tc-btn:active,
 .tc-btn.active {
-  background: rgba(0,255,255,.42);
-  box-shadow: 0 0 24px var(--c-cyan), inset 0 0 14px rgba(0,255,255,.22);
+  background: rgba(0,255,255,.35);
+  box-shadow: 0 0 18px var(--c-cyan);
   transform: scale(0.92);
 }
 
@@ -762,28 +764,28 @@ html, body {
   height: 86px;
   font-size: 30px;
   border-color: var(--c-green);
-  background: rgba(0,255,136,.18);
+  background: rgba(0,30,15,.55);
   color: var(--c-green);
-  box-shadow: 0 0 16px rgba(0,255,136,.36), inset 0 0 8px rgba(0,255,136,.1);
+  box-shadow: 0 0 12px rgba(0,255,136,.55);
 }
 .tc-gas:active,
 .tc-gas.active {
-  background: rgba(0,255,136,.46);
-  box-shadow: 0 0 30px var(--c-green), inset 0 0 16px rgba(0,255,136,.22);
+  background: rgba(0,255,136,.38);
+  box-shadow: 0 0 22px var(--c-green);
 }
 
 .tc-brake {
   width: 70px;
   height: 70px;
   border-color: var(--c-pink);
-  background: rgba(255,0,102,.16);
+  background: rgba(30,0,10,.55);
   color: var(--c-pink);
-  box-shadow: 0 0 12px rgba(255,0,102,.28), inset 0 0 6px rgba(255,0,102,.08);
+  box-shadow: 0 0 10px rgba(255,0,102,.5);
 }
 .tc-brake:active,
 .tc-brake.active {
-  background: rgba(255,0,102,.42);
-  box-shadow: 0 0 24px var(--c-pink), inset 0 0 14px rgba(255,0,102,.22);
+  background: rgba(255,0,102,.35);
+  box-shadow: 0 0 18px var(--c-pink);
 }
 
 /* ==================== AVISO "VIRE O CELULAR" ==================== */
