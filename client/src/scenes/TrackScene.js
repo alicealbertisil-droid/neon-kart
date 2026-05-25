@@ -101,6 +101,44 @@ const NK_Track = {
   ],
 
   /**
+   * Cones de obstáculo (espalhados pela pista).
+   * Espremem o traçado em pontos estratégicos para dificultar.
+   */
+  cones: [
+    // Reta inicial: cone à esquerda da pista (perto da borda superior)
+    { id: 'c1', x: 2000, y: 2920 },
+    // Reta inicial: cone à direita (mais à frente, do outro lado)
+    { id: 'c2', x: 3200, y: 3080 },
+    // Subida da direita
+    { id: 'c3', x: 5460, y: 2400 },
+    { id: 'c4', x: 5650, y: 1700 },
+    // Topo direito: ao iniciar a virada
+    { id: 'c5', x: 4900, y: 1130 },
+    // Reta superior
+    { id: 'c6', x: 3700, y: 970 },
+    // No "S" do meio
+    { id: 'c7', x: 2920, y: 1700 },
+    // Subida pela esquerda
+    { id: 'c8', x: 1200, y: 1150 },
+    // Lateral esquerda
+    { id: 'c9', x: 360,  y: 2000 },
+    // Curva final esquerda inferior
+    { id: 'c10', x: 700, y: 2920 }
+  ],
+
+  /**
+   * Bananas (espalhadas pela pista). Pisar = girar descontrolado.
+   */
+  bananas: [
+    { id: 'b1', x: 2700, y: 3000 },
+    { id: 'b2', x: 5550, y: 1450 },
+    { id: 'b3', x: 4200, y: 1100 },
+    { id: 'b4', x: 2950, y: 1380 },
+    { id: 'b5', x: 1800, y: 1500 },
+    { id: 'b6', x: 450,  y: 1800 }
+  ],
+
+  /**
    * Posições do grid de largada (em frente à linha de chegada).
    * 20 posições na mesma linha de largada (x=1150), centralizadas na pista.
    * Track center y=3000, halfWidth=140. Grid ocupa ±66px do centro,
@@ -276,6 +314,94 @@ const NK_Track = {
       lights.fillCircle(wp.x, wp.y - cfg.TRACK_WIDTH/2 - 12, 4);
       lights.fillCircle(wp.x, wp.y + cfg.TRACK_WIDTH/2 + 12, 4);
     }
+
+    // ----- 7) CONES (obstáculos sólidos) -----
+    this.coneSprites = [];
+    this.cones.forEach(c => {
+      // Container pra agrupar o desenho do cone
+      const coneGfx = scene.add.graphics();
+      coneGfx.x = c.x; coneGfx.y = c.y;
+
+      // Sombra
+      coneGfx.fillStyle(0x000000, 0.5);
+      coneGfx.fillEllipse(0, 10, 22, 8);
+
+      // Base (faixa preta)
+      coneGfx.fillStyle(0x1a0530, 1);
+      coneGfx.fillRect(-12, 6, 24, 6);
+
+      // Triângulo laranja do cone
+      coneGfx.fillStyle(0xff6b00, 1);
+      coneGfx.beginPath();
+      coneGfx.moveTo(-10, 6);
+      coneGfx.lineTo(0, -14);
+      coneGfx.lineTo(10, 6);
+      coneGfx.closePath();
+      coneGfx.fillPath();
+
+      // Listras brancas refletivas
+      coneGfx.fillStyle(0xffffff, 0.9);
+      coneGfx.fillRect(-7, -2, 14, 2);
+      coneGfx.fillRect(-9, 2, 18, 2);
+
+      // Glow neon laranja
+      coneGfx.fillStyle(0xff6b00, 0.25);
+      coneGfx.fillCircle(0, -2, 18);
+
+      coneGfx.setDepth(5);
+      coneGfx.coneId = c.id;
+      coneGfx.coneX = c.x;
+      coneGfx.coneY = c.y;
+      coneGfx.cooldownUntil = 0; // timestamp até quando esse cone está "stunado"
+
+      this.coneSprites.push(coneGfx);
+    });
+
+    // ----- 8) BANANAS (escorregão) -----
+    this.bananaSprites = [];
+    this.bananas.forEach(b => {
+      const banGfx = scene.add.graphics();
+      banGfx.x = b.x; banGfx.y = b.y;
+
+      // Sombra
+      banGfx.fillStyle(0x000000, 0.4);
+      banGfx.fillEllipse(0, 6, 24, 6);
+
+      // Corpo amarelo da banana (forma de meia-lua)
+      banGfx.fillStyle(0xffeb3b, 1);
+      banGfx.beginPath();
+      banGfx.arc(-2, 0, 10, Math.PI * 0.15, Math.PI * 1.05, false);
+      banGfx.arc(-2, 0, 6, Math.PI * 1.05, Math.PI * 0.15, true);
+      banGfx.closePath();
+      banGfx.fillPath();
+
+      // Pontinhas marrons
+      banGfx.fillStyle(0x5d3a00, 1);
+      banGfx.fillCircle(-12, -1, 2);
+      banGfx.fillCircle(7, 4, 2);
+
+      // Brilho amarelo neon
+      banGfx.fillStyle(0xffeb3b, 0.3);
+      banGfx.fillCircle(0, 0, 16);
+
+      banGfx.setDepth(5);
+      banGfx.bananaId = b.id;
+      banGfx.bananaX = b.x;
+      banGfx.bananaY = b.y;
+      banGfx.active = true;
+
+      // Animação leve de "wiggle"
+      scene.tweens.add({
+        targets: banGfx,
+        angle: { from: -8, to: 8 },
+        duration: 1200,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+
+      this.bananaSprites.push(banGfx);
+    });
   },
 
   /**
