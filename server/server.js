@@ -199,17 +199,19 @@ io.on('connection', (socket) => {
     room.state = 'racing';
     room.startTime = Date.now();
 
-    // Define posições iniciais (grid de largada em 2 colunas)
+    // Define posições iniciais (grid de largada na pista ESCALADA 1.5x)
     const playerIds = Object.keys(room.players);
     playerIds.forEach((id, i) => {
       const p = room.players[id];
-      // Todos na mesma linha de largada, centralizados na pista (y 1943–2057)
-      p.x = 750;
-      p.y = 1943 + i * 6;
+      // Posições iguais às do startGrid no client/TrackScene.js
+      p.x = 1150;
+      p.y = 2934 + i * 7;
       p.angle = 0;
       p.lap = 0;
       p.checkpoint = 0;
       p.finished = false;
+      // Limpa estado de itens da corrida anterior
+      p.currentItem = null;
     });
 
     io.to(roomId).emit('raceStart', {
@@ -313,6 +315,97 @@ io.on('connection', (socket) => {
     const roomId = socket.data.roomId;
     if (!roomId) return;
     io.to(roomId).emit('boostTaken', { boostId, byId: socket.id });
+  });
+
+  /**
+   * Jogador pegou uma CAIXA DE ITEM (com "?")
+   * Servidor sorteia o item e responde APENAS pro jogador.
+   * Os outros só recebem que a caixa sumiu (visual).
+   *
+   * Pesos de drop (totalizam 100):
+   *  - banana:  30
+   *  - cone:    25
+   *  - turbo:   20
+   *  - escudo:  15
+   *  - raio:    10  (raro!)
+   */
+  socket.on('itemPickup', ({ boxId }) => {
+    const roomId = socket.data.roomId;
+    const room = rooms[roomId];
+    if (!room || room.state !== 'racing') return;
+    const p = room.players[socket.id];
+    if (!p) return;
+    if (p.currentItem) return; // já tem item: ignora
+
+    // Sorteio ponderado
+    const r = Math.random() * 100;
+    let item;
+    if      (r < 30) item = 'banana';
+    else if (r < 55) item = 'cone';
+    else if (r < 75) item = 'turbo';
+    else if (r < 90) item = 'escudo';
+    else             item = 'raio';
+
+    p.currentItem = item;
+    // Avisa só o jogador qual item ele recebeu
+    socket.emit('itemReceived', { item });
+    // Avisa todos que a caixa sumiu
+    io.to(roomId).emit('itemBoxTaken', { boxId, byId: socket.id });
+  });
+
+  /**
+   * Jogador USOU o item (uso automático no cliente após pegar).
+   * Servidor valida e retransmite efeitos pros afetados.
+   */
+  socket.on('itemUsed', (data) => {
+    const roomId = socket.data.roomId;
+    const room = rooms[roomId];
+    if (!room || room.state !== 'racing') return;
+    const p = room.players[socket.id];
+    if (!p || !p.currentItem) return;
+
+    const item = p.currentItem;
+    p.currentItem = null; // consome o item
+
+    // Cada item se comporta de forma diferente:
+    switch (item) {
+      case 'turbo':
+      case 'escudo':
+        // Só afeta o próprio jogador: confirma pra ele
+        socket.emit('itemEffect', { item, on: 'self' });
+        break;
+
+      case 'banana':
+      case 'cone':
+        // Solta um obstáculo atrás do carro do jogador.
+        // O cliente já calcula a posição (data.x, data.y) e o servidor retransmite.
+        io.to(roomId).emit('itemDropped', {
+          ownerId: socket.id,
+          item,
+          x: data.x, y: data.y,
+          dropId: `${socket.id}_${Date.now()}`
+        });
+        break;
+
+      case 'raio':
+        // Atinge TODOS os outros jogadores (não o próprio)
+        io.to(roomId).emit('itemEffect', {
+          item: 'raio',
+          on: 'all-except',
+          ownerId: socket.id
+        });
+        break;
+    }
+  });
+
+  /**
+   * Cliente avisa que um obstáculo solto (banana/cone) atingiu seu carro.
+   * Servidor pode usar isso para estatísticas no futuro; por ora só retransmite.
+   */
+  socket.on('itemHit', ({ dropId, victimId }) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    io.to(roomId).emit('itemHitConfirmed', { dropId, victimId });
   });
 
   /**
