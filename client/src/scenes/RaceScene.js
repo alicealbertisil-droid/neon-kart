@@ -56,17 +56,10 @@ class RaceScene extends Phaser.Scene {
     // Define meu carro como referência
     this.myCar = this.cars[this.myId];
     if (this.myCar) {
-      // Zoom maior no mobile pra ver o carro melhor; lerp suave
-      const isMobile = !!window.NK_IsMobile;
-      this.isMobile = isMobile;
-      const zoom = isMobile ? 1.35 : 1.0;
+      // Zoom igual em desktop e mobile (1.0 — sem ampliação)
+      this.isMobile = !!window.NK_IsMobile;
       this.cameras.main.startFollow(this.myCar.sprite, true, 0.1, 0.1);
-      this.cameras.main.setZoom(zoom);
-      // No mobile, ajusta o "follow offset" pra ver mais à frente
-      // (a câmera fica deslocada um pouco atrás do carro)
-      if (isMobile) {
-        this.cameras.main.setFollowOffset(0, 40);
-      }
+      this.cameras.main.setZoom(1.0);
     }
 
     // ----- INPUT -----
