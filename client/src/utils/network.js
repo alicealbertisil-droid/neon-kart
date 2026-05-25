@@ -99,6 +99,12 @@ const NK_Net = (() => {
     socket.on('raceFinished', (data) => fire('raceFinished', data));
     socket.on('backToLobby', (data) => fire('backToLobby', data));
     socket.on('boostTaken', (data) => fire('boostTaken', data));
+    // ----- EVENTOS DE ITEM -----
+    socket.on('itemReceived', (data) => fire('itemReceived', data));
+    socket.on('itemBoxTaken', (data) => fire('itemBoxTaken', data));
+    socket.on('itemEffect', (data) => fire('itemEffect', data));
+    socket.on('itemDropped', (data) => fire('itemDropped', data));
+    socket.on('itemHitConfirmed', (data) => fire('itemHitConfirmed', data));
   }
 
   /** Entra ou cria uma sala */
@@ -131,10 +137,26 @@ const NK_Net = (() => {
     socket.emit('readyToLobby');
   }
 
+  /** Jogador encostou numa caixa "?" */
+  function sendItemPickup(boxId) {
+    socket.emit('itemPickup', { boxId });
+  }
+
+  /** Jogador usou o item (uso automático). Para banana/cone, envia posição. */
+  function sendItemUsed(data) {
+    socket.emit('itemUsed', data || {});
+  }
+
+  /** Jogador foi atingido por uma banana/cone solta */
+  function sendItemHit(dropId) {
+    socket.emit('itemHit', { dropId, victimId: myId });
+  }
+
   return {
     connect, on, once,
     joinRoom, startRace,
     sendUpdate, sendCheckpoint, sendBoostPickup, sendReadyToLobby,
+    sendItemPickup, sendItemUsed, sendItemHit,
     get myId()     { return myId; },
     get myRoomId() { return myRoomId; },
     get isHost()   { return isHost; }
