@@ -56,8 +56,17 @@ class RaceScene extends Phaser.Scene {
     // Define meu carro como referência
     this.myCar = this.cars[this.myId];
     if (this.myCar) {
+      // Zoom maior no mobile pra ver o carro melhor; lerp suave
+      const isMobile = !!window.NK_IsMobile;
+      this.isMobile = isMobile;
+      const zoom = isMobile ? 1.35 : 1.0;
       this.cameras.main.startFollow(this.myCar.sprite, true, 0.1, 0.1);
-      this.cameras.main.setZoom(1.0);
+      this.cameras.main.setZoom(zoom);
+      // No mobile, ajusta o "follow offset" pra ver mais à frente
+      // (a câmera fica deslocada um pouco atrás do carro)
+      if (isMobile) {
+        this.cameras.main.setFollowOffset(0, 40);
+      }
     }
 
     // ----- INPUT -----
@@ -305,13 +314,18 @@ class RaceScene extends Phaser.Scene {
     // Só pode girar se estiver se movendo (mais realista)
     if (Math.abs(car.speed) > 5) {
       let turnSpeed = Phaser.Math.DegToRad(C.TURN_SPEED);
+      // No mobile, curva um pouco mais ágil (compensa imprecisão do toque)
+      if (this.isMobile) turnSpeed *= 1.15;
       // Reduz curva em velocidades muito baixas
       const speedFactor = Math.min(1, Math.abs(car.speed) / 200);
+      // Mas no mobile, garante um mínimo de virada mesmo em velocidade baixa
+      const minFactor = this.isMobile ? 0.45 : 0;
+      const finalFactor = Math.max(minFactor, speedFactor);
       // Carro vai de ré: inverte direção
       const dir = car.speed >= 0 ? 1 : -1;
 
-      if (left)  car.angle -= turnSpeed * dt * speedFactor * dir;
-      if (right) car.angle += turnSpeed * dt * speedFactor * dir;
+      if (left)  car.angle -= turnSpeed * dt * finalFactor * dir;
+      if (right) car.angle += turnSpeed * dt * finalFactor * dir;
     }
 
     // ----- POSIÇÃO -----
@@ -373,6 +387,8 @@ class RaceScene extends Phaser.Scene {
     car.speed = 0;
     this.offTrackSince = 0;
     this.hideOffTrackWarning();
+    // Vibração longa de "puxão" pra avisar que voltou
+    if (navigator.vibrate) { try { navigator.vibrate(180); } catch(e){} }
 
     // NÃO zera voltas nem checkpoints — só reposiciona o carro
     // (assim o jogador não perde o progresso da corrida)
@@ -462,6 +478,8 @@ class RaceScene extends Phaser.Scene {
         this.boostUntil = time + window.NK_CONFIG.CAR.BOOST_DURATION;
         car.speed = window.NK_CONFIG.CAR.BOOST_SPEED;
         window.NK_Audio.boost();
+        // Vibração curta-curta ao pegar boost (só no mobile)
+        if (navigator.vibrate) { try { navigator.vibrate([30, 40, 30]); } catch(e){} }
         window.NK_Net.sendBoostPickup(b.boostId);
 
         // Reaparece em 8s
