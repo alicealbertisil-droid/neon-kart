@@ -330,6 +330,31 @@ html, body {
   text-shadow: 0 0 6px var(--c-yellow);
 }
 
+/* ==================== AVATAR DO HABBO ==================== */
+/* Carinha do Habbo BR (vem da API habbo.com.br/habbo-imaging) */
+.habbo-avatar {
+  display: inline-block;
+  vertical-align: middle;
+  /* Funciona como um "container" da carinha: o navegador faz o crop */
+  width: 28px;
+  height: 32px;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: pixelated; /* mantém os pixelões do Habbo nítidos */
+  -ms-interpolation-mode: nearest-neighbor;
+  /* "Plataforma" estilizada embaixo da carinha */
+  filter: drop-shadow(0 0 4px rgba(0, 255, 255, .5));
+  flex-shrink: 0;
+}
+/* Maior no pódio */
+.habbo-avatar.podium-avatar {
+  width: 60px;
+  height: 70px;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 255, .6));
+  margin: 4px auto 2px;
+  display: block;
+}
+
 .host-controls { margin-top: 16px; text-align: center; }
 .host-hint {
   margin-top: 8px;
