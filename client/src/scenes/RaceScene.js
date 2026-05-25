@@ -57,10 +57,10 @@ class RaceScene extends Phaser.Scene {
     this.myCar = this.cars[this.myId];
     if (this.myCar) {
       this.isMobile = !!window.NK_IsMobile;
-      // No mobile o landscape é estreito (pouca altura): câmera mais AFASTADA
-      // (zoom < 1.0) faz ver mais pista pela frente, compensando o aspecto.
+      // No mobile o landscape é estreito (pouca altura): câmera AINDA MAIS
+      // afastada (zoom 0.7) faz ver bem mais pista pela frente.
       // No PC mantemos 1.0.
-      const zoom = this.isMobile ? 0.8 : 1.0;
+      const zoom = this.isMobile ? 0.7 : 1.0;
       this.cameras.main.startFollow(this.myCar.sprite, true, 0.1, 0.1);
       this.cameras.main.setZoom(zoom);
     }
@@ -83,6 +83,8 @@ class RaceScene extends Phaser.Scene {
     this.boostUntil = 0;               // ms - tempo até quando o boost dura
     this.lastNetSend = 0;
     this.offTrackSince = 0;            // ms - quando começou a ficar fora da pista (0 = está na pista)
+    this.bananaSpinUntil = 0;          // ms - tempo até quando o carro está girando pela banana
+    this.bananaSpinDir = 1;            // direção do spin (+1 ou -1)
 
     // ----- COUNTDOWN -----
     this.startCountdown();
@@ -306,6 +308,26 @@ class RaceScene extends Phaser.Scene {
     // Limites de velocidade
     car.speed = Phaser.Math.Clamp(car.speed, -C.REVERSE_SPEED, maxSpeed);
 
+    // ----- EFEITO DA BANANA: gira descontrolado e perde velocidade -----
+    const bananaActive = time < this.bananaSpinUntil;
+    if (bananaActive) {
+      const OB = window.NK_CONFIG.OBSTACLES.BANANA;
+      // Gira o carro continuamente (descontrolado)
+      car.angle += this.bananaSpinDir * Phaser.Math.DegToRad(540) * dt;
+      // Trava velocidade no nível baixo
+      const bananaCap = C.MAX_SPEED * OB.SPEED_PENALTY;
+      if (car.speed > bananaCap) car.speed = bananaCap;
+      // Ignora input durante o spin (não pode acelerar nem virar)
+      // Move o carro pra frente naturalmente sem aplicar curva manual
+      const vxB = Math.cos(car.angle) * car.speed * dt;
+      const vyB = Math.sin(car.angle) * car.speed * dt;
+      car.sprite.x += vxB;
+      car.sprite.y += vyB;
+      car.sprite.setRotation(car.angle);
+      // Checa obstáculos mesmo durante spin (mas pula colisão de banana pra não re-disparar)
+      return;
+    }
+
     // ----- CURVA -----
     // Só pode girar se estiver se movendo (mais realista)
     if (Math.abs(car.speed) > 5) {
@@ -463,6 +485,61 @@ class RaceScene extends Phaser.Scene {
   checkBoostsAndCheckpoints(time) {
     const car = this.myCar;
     const px = car.sprite.x, py = car.sprite.y;
+
+    // ----- CONES (obstáculos sólidos) -----
+    const coneCfg = window.NK_CONFIG.OBSTACLES.CONE;
+    window.NK_Track.coneSprites.forEach(c => {
+      if (time < c.cooldownUntil) return; // ainda em cooldown
+      const d = Math.hypot(c.coneX - px, c.coneY - py);
+      if (d < coneCfg.RADIUS + 14) { // 14 ~ raio do carro
+        // Bateu! Penaliza velocidade
+        car.speed *= coneCfg.SPEED_PENALTY;
+        // Knockback lateral: empurra perpendicular ao ângulo do carro
+        // Direção do empurrão depende de qual lado do cone o carro está
+        const dx = px - c.coneX, dy = py - c.coneY;
+        const len = Math.hypot(dx, dy) || 1;
+        car.sprite.x += (dx / len) * coneCfg.KNOCKBACK;
+        car.sprite.y += (dy / len) * coneCfg.KNOCKBACK;
+        // Cooldown pra não re-trigger no mesmo frame
+        c.cooldownUntil = time + coneCfg.COOLDOWN_MS;
+        // Feedback: animação de "tombo"
+        this.tweens.add({
+          targets: c,
+          angle: c.angle === 0 ? 35 : 0,
+          duration: 200,
+          yoyo: true
+        });
+        // Som de batida (usa o engine pra "engasgar") + vibração forte
+        if (navigator.vibrate) { try { navigator.vibrate(80); } catch(e){} }
+        // Camera shake leve
+        this.cameras.main.shake(150, 0.008);
+      }
+    });
+
+    // ----- BANANAS (escorregão) -----
+    const banCfg = window.NK_CONFIG.OBSTACLES.BANANA;
+    window.NK_Track.bananaSprites.forEach(b => {
+      if (!b.active) return;
+      const d = Math.hypot(b.bananaX - px, b.bananaY - py);
+      if (d < banCfg.RADIUS + 12) {
+        // Pisou! Dispara spin
+        b.active = false;
+        b.setVisible(false);
+        this.bananaSpinUntil = time + banCfg.SPIN_MS;
+        // Aleatoriza direção do spin
+        this.bananaSpinDir = Math.random() < 0.5 ? -1 : 1;
+        // Penaliza velocidade já
+        car.speed *= banCfg.SPEED_PENALTY;
+        if (navigator.vibrate) { try { navigator.vibrate([60, 50, 60, 50, 60]); } catch(e){} }
+        // Camera shake mais forte
+        this.cameras.main.shake(200, 0.012);
+        // Banana volta depois de RESPAWN_MS
+        this.time.delayedCall(banCfg.RESPAWN_MS, () => {
+          b.active = true;
+          b.setVisible(true);
+        });
+      }
+    });
 
     // ----- BOOSTS -----
     window.NK_Track.boostSprites.forEach(b => {
