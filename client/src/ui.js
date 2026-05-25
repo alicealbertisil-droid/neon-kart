@@ -93,6 +93,7 @@ const NK_UI = (() => {
       const li = document.createElement('li');
       li.innerHTML = `
         <span class="dot" style="background:${p.color}; color:${p.color}"></span>
+        ${habboAvatarHtml(p.habboNick, { size: 's' })}
         <span class="nick">${escapeHtml(p.nickname)}</span>
         ${p.habboNick ? `<span class="habbo">@ ${escapeHtml(p.habboNick)}</span>` : ''}
         ${p.isHost ? '<span class="crown" title="Host">👑</span>' : ''}
@@ -150,6 +151,7 @@ const NK_UI = (() => {
       div.innerHTML = `
         <div class="podium-info">
           <div class="podium-crown">${medal}</div>
+          ${habboAvatarHtml(p.habboNick, { size: 'l', extraClass: 'podium-avatar' })}
           <div class="podium-nick-text" style="color:${p.color}">${escapeHtml(p.nickname)}</div>
           ${p.habboNick ? `<div class="podium-habbo">@${escapeHtml(p.habboNick)}</div>` : ''}
         </div>
@@ -179,6 +181,7 @@ const NK_UI = (() => {
       const li = document.createElement('li');
       li.innerHTML = `
         <span class="medal">${i + 4}º</span>
+        ${habboAvatarHtml(p.habboNick, { size: 's' })}
         <span class="nick" style="color:${p.color}">${escapeHtml(p.nickname)}</span>
         ${p.habboNick ? `<span class="habbo">@${escapeHtml(p.habboNick)}</span>` : ''}
         ${p.finishTime != null ? `<span class="finish-time">${fmtTime(p.finishTime)}</span>` : ''}
@@ -219,6 +222,30 @@ const NK_UI = (() => {
     return String(s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /**
+   * Monta o HTML do avatar do Habbo BR (apenas a carinha).
+   * Usa a API oficial: habbo-imaging/avatarimage com headonly=1.
+   * - Se nick estiver vazio, retorna string vazia.
+   * - Se a imagem falhar (nick inválido), o onerror esconde o elemento
+   *   pra não aparecer aquele "ícone quebrado" feio.
+   *
+   * @param {string} habboNick - nick do Habbo (do hotel BR)
+   * @param {object} opts - opcional: { size: 's'|'m'|'l', extraClass: string }
+   */
+  function habboAvatarHtml(habboNick, opts = {}) {
+    if (!habboNick) return '';
+    const size = opts.size || 'm'; // s=pequeno, m=médio, l=grande
+    const cls = 'habbo-avatar' + (opts.extraClass ? ' ' + opts.extraClass : '');
+    // encodeURIComponent pra tratar caracteres especiais no nick
+    const nick = encodeURIComponent(habboNick);
+    const url = `https://www.habbo.com.br/habbo-imaging/avatarimage`
+              + `?user=${nick}&direction=2&head_direction=3&gesture=sml`
+              + `&size=${size}&headonly=1`;
+    // onerror: se a imagem não carregar (nick inexistente), some
+    return `<img src="${url}" alt="" class="${cls}" loading="lazy" `
+         + `onerror="this.style.display='none'" />`;
   }
 
   /** Copia o link da sala para a área de transferência */
