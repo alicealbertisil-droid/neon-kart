@@ -157,42 +157,37 @@ const NK_Track = {
 
     // ----- 2) PISTA (asfalto) -----
     // Desenhamos como uma linha grossa ao longo dos waypoints.
+    // OBS: Phaser desenha "miter joints" nos cantos, o que cria pontas rasgadas
+    // em curvas. Para resolver, depois de cada linha desenhamos círculos nos
+    // vértices com o mesmo raio da linha — assim os cantos ficam arredondados.
     const trackGfx = scene.add.graphics();
+
+    // Helper: desenha linha pelos waypoints + círculos nos cantos com a mesma
+    // cor/alpha da linha. Isso elimina o "rasgo" nos joints.
+    const drawRoundedTrackLayer = (width, color, alpha) => {
+      // 1) linha grossa
+      trackGfx.lineStyle(width, color, alpha);
+      trackGfx.beginPath();
+      trackGfx.moveTo(this.waypoints[0].x, this.waypoints[0].y);
+      for (let i = 1; i < this.waypoints.length; i++) {
+        trackGfx.lineTo(this.waypoints[i].x, this.waypoints[i].y);
+      }
+      trackGfx.strokePath();
+      // 2) círculos nos vértices pra arredondar os cantos
+      trackGfx.fillStyle(color, alpha);
+      for (let i = 0; i < this.waypoints.length; i++) {
+        trackGfx.fillCircle(this.waypoints[i].x, this.waypoints[i].y, width / 2);
+      }
+    };
+
     // Sombra externa (glow)
-    trackGfx.lineStyle(cfg.TRACK_WIDTH + 30, cfg.COLORS.TRACK_EDGE_OUTER, 0.15);
-    trackGfx.beginPath();
-    trackGfx.moveTo(this.waypoints[0].x, this.waypoints[0].y);
-    for (let i = 1; i < this.waypoints.length; i++) {
-      trackGfx.lineTo(this.waypoints[i].x, this.waypoints[i].y);
-    }
-    trackGfx.strokePath();
-
+    drawRoundedTrackLayer(cfg.TRACK_WIDTH + 30, cfg.COLORS.TRACK_EDGE_OUTER, 0.15);
     // Borda externa magenta
-    trackGfx.lineStyle(cfg.TRACK_WIDTH + 8, cfg.COLORS.TRACK_EDGE_OUTER, 0.9);
-    trackGfx.beginPath();
-    trackGfx.moveTo(this.waypoints[0].x, this.waypoints[0].y);
-    for (let i = 1; i < this.waypoints.length; i++) {
-      trackGfx.lineTo(this.waypoints[i].x, this.waypoints[i].y);
-    }
-    trackGfx.strokePath();
-
+    drawRoundedTrackLayer(cfg.TRACK_WIDTH + 8, cfg.COLORS.TRACK_EDGE_OUTER, 0.9);
     // Asfalto interno
-    trackGfx.lineStyle(cfg.TRACK_WIDTH, cfg.COLORS.TRACK, 1);
-    trackGfx.beginPath();
-    trackGfx.moveTo(this.waypoints[0].x, this.waypoints[0].y);
-    for (let i = 1; i < this.waypoints.length; i++) {
-      trackGfx.lineTo(this.waypoints[i].x, this.waypoints[i].y);
-    }
-    trackGfx.strokePath();
-
-    // Borda interna ciano (linha mais fina dentro)
-    trackGfx.lineStyle(cfg.TRACK_WIDTH - 16, cfg.COLORS.TRACK, 1);
-    trackGfx.beginPath();
-    trackGfx.moveTo(this.waypoints[0].x, this.waypoints[0].y);
-    for (let i = 1; i < this.waypoints.length; i++) {
-      trackGfx.lineTo(this.waypoints[i].x, this.waypoints[i].y);
-    }
-    trackGfx.strokePath();
+    drawRoundedTrackLayer(cfg.TRACK_WIDTH, cfg.COLORS.TRACK, 1);
+    // Borda interna (preenche por cima do asfalto interno; mesma cor da pista)
+    drawRoundedTrackLayer(cfg.TRACK_WIDTH - 16, cfg.COLORS.TRACK, 1);
 
     // ----- 3) LINHA CENTRAL TRACEJADA -----
     const dash = scene.add.graphics();
