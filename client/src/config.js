@@ -28,19 +28,46 @@ const NK_CONFIG = {
   /* ----- PENALIDADE FORA DA PISTA ----- */
   OFFTRACK_RESET_MS: 2000, // tempo (ms) fora da pista antes de voltar pra largada
 
-  /* ----- OBSTÁCULOS ----- */
+  /* ----- OBSTÁCULOS (fixos na pista) ----- */
   OBSTACLES: {
     CONE: {
-      RADIUS: 22,           // raio de colisão do cone (px) - AUMENTADO
+      RADIUS: 22,           // raio de colisão do cone (px)
       SPEED_PENALTY: 0.4,   // reduz velocidade a 40% ao bater
       KNOCKBACK: 80,        // empurrão lateral em px ao bater
       COOLDOWN_MS: 800      // tempo até o cone "ressetar" depois de atingido
     },
     BANANA: {
-      RADIUS: 28,           // raio de "pisada" - AUMENTADO
+      RADIUS: 28,           // raio de "pisada"
       SPIN_MS: 900,         // tempo girando descontrolado (ms)
       SPEED_PENALTY: 0.3,   // velocidade fica em 30% durante o efeito
       RESPAWN_MS: 6000      // tempo pra banana reaparecer depois de pisada
+    }
+  },
+
+  /* ----- ITENS / PODERES ----- */
+  ITEMS: {
+    BOX_RESPAWN_MS: 8000,     // tempo pra caixa "?" reaparecer depois de pegar
+    PICKUP_RADIUS: 32,        // raio pra pegar a caixa
+    // Efeitos:
+    TURBO: {
+      DURATION_MS: 2000,      // duração do turbo extra
+      SPEED: 700              // velocidade durante turbo (maior que boost normal)
+    },
+    SHIELD: {
+      DURATION_MS: 3000       // 3s de proteção
+    },
+    RAIO: {
+      SLOW_MS: 1000,          // 1s de lentidão nos afetados
+      SPEED_MULT: 0.45        // velocidade reduzida a 45% durante o raio
+    },
+    BANANA_DROP: {
+      // Banana solta pelo jogador (mesmos efeitos da banana da pista)
+      RADIUS: 28,
+      LIFETIME_MS: 30000      // some sozinha depois de 30s
+    },
+    CONE_DROP: {
+      RADIUS: 22,
+      LIFETIME_MS: 30000
     }
   },
 
