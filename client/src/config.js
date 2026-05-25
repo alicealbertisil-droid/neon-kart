@@ -21,9 +21,12 @@ const NK_CONFIG = {
       : "https://neon-kart.onrender.com",
 
   /* ----- PISTA ----- */
-  WORLD_WIDTH: 4000, // largura total do mundo do jogo (px)
-  WORLD_HEIGHT: 2400, // altura total
-  TRACK_WIDTH: 220, // espessura da pista (px)
+  WORLD_WIDTH: 6000, // largura total do mundo do jogo (px) - AUMENTADA
+  WORLD_HEIGHT: 3600, // altura total - AUMENTADA
+  TRACK_WIDTH: 280, // espessura da pista (px) - mais larga p/ acomodar maior escala
+
+  /* ----- PENALIDADE FORA DA PISTA ----- */
+  OFFTRACK_RESET_MS: 3000, // tempo (ms) fora da pista antes de voltar pra largada
 
   /* ----- CORRIDA ----- */
   MAX_LAPS: 3,
