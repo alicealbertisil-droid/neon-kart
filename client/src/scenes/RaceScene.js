@@ -86,11 +86,21 @@ class RaceScene extends Phaser.Scene {
     this.bananaSpinUntil = 0;          // ms - tempo até quando o carro está girando pela banana
     this.bananaSpinDir = 1;            // direção do spin (+1 ou -1)
 
+    // ----- ITENS / PODERES -----
+    this.currentItem = null;           // item que eu tenho na mão (null se nenhum)
+    this.turboUntil = 0;               // ms - tempo até quando o turbo extra dura
+    this.shieldUntil = 0;              // ms - tempo até quando o escudo dura
+    this.raioUntil = 0;                // ms - tempo até quando estou lento pelo raio
+    this.droppedItems = {};            // dropId -> sprite (bananas/cones soltos por jogadores)
+
     // ----- COUNTDOWN -----
     this.startCountdown();
 
     // ----- LISTENERS DE REDE -----
     this.setupNetwork();
+
+    // ----- MINIMAPA -----
+    this.setupMinimap();
   }
 
   // ----------------------------------------------------------
@@ -228,6 +238,35 @@ class RaceScene extends Phaser.Scene {
     window.NK_Net.on('boostTaken', ({ boostId }) => {
       this.hideBoost(boostId);
     });
+
+    // ----- EVENTOS DE ITEM -----
+    // Eu peguei um item: servidor me responde qual
+    window.NK_Net.on('itemReceived', ({ item }) => {
+      this.currentItem = item;
+      window.NK_UI.showItemPopup(item);
+      // Uso AUTOMÁTICO: depois de 600ms (pra mostrar o popup), usa
+      this.time.delayedCall(600, () => this.autoUseItem());
+    });
+
+    // Caixa "?" sumiu (alguém pegou)
+    window.NK_Net.on('itemBoxTaken', ({ boxId }) => {
+      this.hideItemBox(boxId);
+    });
+
+    // Efeito de item (próprio ou raio)
+    window.NK_Net.on('itemEffect', (data) => {
+      this.applyItemEffect(data);
+    });
+
+    // Alguém soltou banana/cone na pista
+    window.NK_Net.on('itemDropped', (data) => {
+      this.spawnDroppedItem(data);
+    });
+
+    // Confirmação de hit em obstáculo solto (apenas remove visualmente)
+    window.NK_Net.on('itemHitConfirmed', ({ dropId }) => {
+      this.removeDroppedItem(dropId);
+    });
   }
 
   // ----------------------------------------------------------
@@ -268,6 +307,24 @@ class RaceScene extends Phaser.Scene {
     const speedTxt = document.getElementById('hud-speed');
     if (fill) fill.style.width = `${(Math.abs(this.myCar.speed)/window.NK_CONFIG.CAR.MAX_SPEED)*100}%`;
     if (speedTxt) speedTxt.textContent = speedKmh;
+
+    // Atualiza visual do escudo (se ativo)
+    if (this.shieldGfx) {
+      if (time >= this.shieldUntil) {
+        this.hideShieldVisual();
+      } else {
+        this.shieldGfx.clear();
+        this.shieldGfx.lineStyle(3, 0x00ffff, 0.8);
+        this.shieldGfx.strokeCircle(this.myCar.sprite.x, this.myCar.sprite.y, 26);
+        this.shieldGfx.fillStyle(0x00ffff, 0.12);
+        this.shieldGfx.fillCircle(this.myCar.sprite.x, this.myCar.sprite.y, 26);
+      }
+    }
+
+    // Atualiza minimapa (não a cada frame: a cada ~6 frames pra economizar)
+    if (!this._miniFrame) this._miniFrame = 0;
+    this._miniFrame = (this._miniFrame + 1) % 6;
+    if (this._miniFrame === 0) this.updateMinimap();
   }
 
   // ----------------------------------------------------------
@@ -287,9 +344,23 @@ class RaceScene extends Phaser.Scene {
 
     car.drifting = false;
 
-    // Boost ativo?
+    // Boost normal ativo? Turbo extra ativo? Raio? Calcula a velocidade máxima.
     const boosting = time < this.boostUntil;
-    const maxSpeed = boosting ? C.BOOST_SPEED : C.MAX_SPEED;
+    const turboing = time < this.turboUntil;
+    const raioed   = time < this.raioUntil;
+    const I = window.NK_CONFIG.ITEMS;
+
+    let maxSpeed;
+    if (turboing)       maxSpeed = I.TURBO.SPEED;        // turbo extra: mais rápido
+    else if (boosting)  maxSpeed = C.BOOST_SPEED;        // boost normal
+    else                maxSpeed = C.MAX_SPEED;
+
+    // Raio: força velocidade baixa
+    if (raioed) {
+      const raioCap = C.MAX_SPEED * I.RAIO.SPEED_MULT;
+      if (car.speed > raioCap) car.speed = raioCap;
+      maxSpeed = Math.min(maxSpeed, raioCap);
+    }
 
     // ----- ACELERAÇÃO / FRENAGEM -----
     if (up) {
@@ -491,13 +562,79 @@ class RaceScene extends Phaser.Scene {
   checkBoostsAndCheckpoints(time) {
     const car = this.myCar;
     const px = car.sprite.x, py = car.sprite.y;
+    // Estou com escudo?
+    const shielded = time < this.shieldUntil;
 
-    // ----- CONES (obstáculos sólidos) -----
+    // ----- CAIXAS DE ITEM ("?") -----
+    const I = window.NK_CONFIG.ITEMS;
+    if (!this.currentItem) { // só pega se não tem item ainda
+      window.NK_Track.itemBoxSprites.forEach(b => {
+        if (!b.active) return;
+        const d = Math.hypot(b.boxX - px, b.boxY - py);
+        if (d < I.PICKUP_RADIUS) {
+          // Marca local como inativa (server vai confirmar pra todos)
+          b.active = false;
+          b.setVisible(false);
+          // Avisa o servidor pra sortear o item
+          window.NK_Net.sendItemPickup(b.boxId);
+          // Vibração curta de "pegou"
+          if (navigator.vibrate) { try { navigator.vibrate(40); } catch(e){} }
+          // Reaparece em ITEMS.BOX_RESPAWN_MS
+          this.time.delayedCall(I.BOX_RESPAWN_MS, () => {
+            b.active = true;
+            b.setVisible(true);
+          });
+        }
+      });
+    }
+
+    // ----- DROPPED ITEMS (bananas/cones soltos por jogadores) -----
+    Object.entries(this.droppedItems).forEach(([dropId, drop]) => {
+      if (!drop.active) return;
+      // Não atinge o próprio dono
+      if (drop.ownerId === this.myId) return;
+      const d = Math.hypot(drop.x - px, drop.y - py);
+      const hitRadius = drop.type === 'banana'
+        ? I.BANANA_DROP.RADIUS + 12
+        : I.CONE_DROP.RADIUS + 14;
+      if (d < hitRadius) {
+        // Se eu tenho escudo, ABSORVE o hit e remove o item
+        if (shielded) {
+          this.flashShieldBlock();
+          this.removeDroppedItem(dropId);
+          window.NK_Net.sendItemHit(dropId);
+          return;
+        }
+        // Sem escudo: aplica efeito conforme o tipo
+        if (drop.type === 'banana') {
+          this.bananaSpinUntil = time + window.NK_CONFIG.OBSTACLES.BANANA.SPIN_MS;
+          this.bananaSpinDir = Math.random() < 0.5 ? -1 : 1;
+          car.speed *= window.NK_CONFIG.OBSTACLES.BANANA.SPEED_PENALTY;
+        } else {
+          // cone
+          car.speed *= window.NK_CONFIG.OBSTACLES.CONE.SPEED_PENALTY;
+          const dx = px - drop.x, dy = py - drop.y;
+          const len = Math.hypot(dx, dy) || 1;
+          car.sprite.x += (dx / len) * window.NK_CONFIG.OBSTACLES.CONE.KNOCKBACK;
+          car.sprite.y += (dy / len) * window.NK_CONFIG.OBSTACLES.CONE.KNOCKBACK;
+        }
+        if (navigator.vibrate) { try { navigator.vibrate(80); } catch(e){} }
+        this.removeDroppedItem(dropId);
+        window.NK_Net.sendItemHit(dropId);
+      }
+    });
+
+    // ----- CONES FIXOS (obstáculos sólidos) -----
     const coneCfg = window.NK_CONFIG.OBSTACLES.CONE;
     window.NK_Track.coneSprites.forEach(c => {
       if (time < c.cooldownUntil) return; // ainda em cooldown
       const d = Math.hypot(c.coneX - px, c.coneY - py);
       if (d < coneCfg.RADIUS + 14) { // 14 ~ raio do carro
+        if (shielded) {
+          this.flashShieldBlock();
+          c.cooldownUntil = time + coneCfg.COOLDOWN_MS;
+          return;
+        }
         // Bateu! Penaliza velocidade
         car.speed *= coneCfg.SPEED_PENALTY;
         // Knockback lateral: empurra perpendicular ao ângulo do carro
@@ -528,6 +665,16 @@ class RaceScene extends Phaser.Scene {
       if (!b.active) return;
       const d = Math.hypot(b.bananaX - px, b.bananaY - py);
       if (d < banCfg.RADIUS + 12) {
+        if (shielded) {
+          this.flashShieldBlock();
+          b.active = false;
+          b.setVisible(false);
+          this.time.delayedCall(banCfg.RESPAWN_MS, () => {
+            b.active = true;
+            b.setVisible(true);
+          });
+          return;
+        }
         // Pisou! Dispara spin
         b.active = false;
         b.setVisible(false);
@@ -622,6 +769,262 @@ class RaceScene extends Phaser.Scene {
         b.setVisible(true);
       });
     }
+  }
+
+  // ----------------------------------------------------------
+  // ITENS — uso automático e efeitos
+  // ----------------------------------------------------------
+
+  /** Esconde uma caixa "?" (quando alguém pega) */
+  hideItemBox(boxId) {
+    const b = window.NK_Track.itemBoxSprites.find(x => x.boxId === boxId);
+    if (b && b.active) {
+      b.active = false;
+      b.setVisible(false);
+      this.time.delayedCall(window.NK_CONFIG.ITEMS.BOX_RESPAWN_MS, () => {
+        b.active = true;
+        b.setVisible(true);
+      });
+    }
+  }
+
+  /** Usa o item que tenho na mão (chamado automaticamente após pickup) */
+  autoUseItem() {
+    if (!this.currentItem) return;
+    const item = this.currentItem;
+    this.currentItem = null;
+
+    if (item === 'banana' || item === 'cone') {
+      // Solta atrás do carro
+      const dist = 40;
+      const dropX = this.myCar.sprite.x - Math.cos(this.myCar.angle) * dist;
+      const dropY = this.myCar.sprite.y - Math.sin(this.myCar.angle) * dist;
+      window.NK_Net.sendItemUsed({ item, x: dropX, y: dropY });
+    } else {
+      window.NK_Net.sendItemUsed({ item });
+    }
+  }
+
+  /** Aplica efeito de item (vem do servidor) */
+  applyItemEffect(data) {
+    const time = this.time.now;
+    const I = window.NK_CONFIG.ITEMS;
+
+    if (data.item === 'turbo' && data.on === 'self') {
+      this.turboUntil = time + I.TURBO.DURATION_MS;
+      this.myCar.speed = I.TURBO.SPEED;
+      window.NK_Audio.boost && window.NK_Audio.boost();
+      if (navigator.vibrate) { try { navigator.vibrate([30, 30, 30]); } catch(e){} }
+    }
+    else if (data.item === 'escudo' && data.on === 'self') {
+      this.shieldUntil = time + I.SHIELD.DURATION_MS;
+      this.showShieldVisual();
+    }
+    else if (data.item === 'raio' && data.on === 'all-except') {
+      // Se EU não fui o dono, sou afetado
+      if (data.ownerId !== this.myId) {
+        // Se eu tenho escudo, bloqueio
+        if (time < this.shieldUntil) {
+          this.flashShieldBlock();
+        } else {
+          this.raioUntil = time + I.RAIO.SLOW_MS;
+          this.myCar.speed *= I.RAIO.SPEED_MULT;
+          if (navigator.vibrate) { try { navigator.vibrate(150); } catch(e){} }
+          // Flash branco rápido na tela
+          this.flashScreen(0xffffff, 200);
+        }
+      } else {
+        // Sou o dono: dou um flash leve só pra feedback
+        this.flashScreen(0xffff00, 150);
+      }
+    }
+  }
+
+  /** Cria sprite de banana/cone solto por jogador (sincronizado pela rede) */
+  spawnDroppedItem({ ownerId, item, x, y, dropId }) {
+    const I = window.NK_CONFIG.ITEMS;
+    const gfx = this.add.graphics();
+    gfx.x = x; gfx.y = y;
+    gfx.setDepth(5);
+
+    if (item === 'banana') {
+      // Reusa visual da banana
+      gfx.fillStyle(0x000000, 0.4);
+      gfx.fillEllipse(0, 10, 38, 10);
+      gfx.fillStyle(0xffeb3b, 1);
+      gfx.beginPath();
+      gfx.arc(-3, 0, 16, Math.PI * 0.15, Math.PI * 1.05, false);
+      gfx.arc(-3, 0, 9, Math.PI * 1.05, Math.PI * 0.15, true);
+      gfx.closePath();
+      gfx.fillPath();
+      gfx.lineStyle(2, 0x8a5a00, 1);
+      gfx.beginPath();
+      gfx.arc(-3, 0, 16, Math.PI * 0.15, Math.PI * 1.05, false);
+      gfx.arc(-3, 0, 9, Math.PI * 1.05, Math.PI * 0.15, true);
+      gfx.closePath();
+      gfx.strokePath();
+    } else {
+      // cone
+      gfx.fillStyle(0x000000, 0.5);
+      gfx.fillEllipse(0, 16, 34, 12);
+      gfx.fillStyle(0x1a0530, 1);
+      gfx.fillRect(-18, 10, 36, 9);
+      gfx.fillStyle(0xff6b00, 1);
+      gfx.beginPath();
+      gfx.moveTo(-15, 10);
+      gfx.lineTo(0, -22);
+      gfx.lineTo(15, 10);
+      gfx.closePath();
+      gfx.fillPath();
+      gfx.fillStyle(0xffffff, 0.9);
+      gfx.fillRect(-11, -3, 22, 3);
+      gfx.fillRect(-13, 3, 26, 3);
+    }
+
+    this.droppedItems[dropId] = {
+      sprite: gfx, ownerId, type: item, x, y, active: true
+    };
+
+    // Some sozinha depois de LIFETIME_MS
+    const lifetime = item === 'banana' ? I.BANANA_DROP.LIFETIME_MS : I.CONE_DROP.LIFETIME_MS;
+    this.time.delayedCall(lifetime, () => {
+      this.removeDroppedItem(dropId);
+    });
+  }
+
+  /** Remove um item solto */
+  removeDroppedItem(dropId) {
+    const drop = this.droppedItems[dropId];
+    if (!drop) return;
+    drop.active = false;
+    if (drop.sprite) drop.sprite.destroy();
+    delete this.droppedItems[dropId];
+  }
+
+  /** Mostra/atualiza o visual de escudo ao redor do carro */
+  showShieldVisual() {
+    if (this.shieldGfx) return; // já existe
+    this.shieldGfx = this.add.graphics();
+    this.shieldGfx.setDepth(15);
+    // Tween de pulsação
+    this.tweens.add({
+      targets: this.shieldGfx,
+      alpha: { from: 0.9, to: 0.4 },
+      duration: 400,
+      yoyo: true,
+      repeat: -1
+    });
+  }
+
+  hideShieldVisual() {
+    if (this.shieldGfx) {
+      this.shieldGfx.destroy();
+      this.shieldGfx = null;
+    }
+  }
+
+  /** Flash rápido pra mostrar que o escudo bloqueou algo */
+  flashShieldBlock() {
+    if (!this.shieldGfx) return;
+    // Pulso rápido
+    this.tweens.add({
+      targets: this.shieldGfx,
+      scale: { from: 1.3, to: 1 },
+      duration: 200
+    });
+    if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e){} }
+  }
+
+  /** Flash de cor na tela inteira (efeito visual rápido) */
+  flashScreen(color, durationMs) {
+    const cam = this.cameras.main;
+    cam.flash(durationMs, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
+  }
+
+  // ----------------------------------------------------------
+  // MINIMAPA — desenha pista pequena no canto inferior direito
+  // ----------------------------------------------------------
+  setupMinimap() {
+    const cfg = window.NK_CONFIG;
+    // Dimensões do minimapa (CSS controla posição, aqui só calculamos escala)
+    const isMobile = !!window.NK_IsMobile;
+    this.miniSize = isMobile ? 110 : 160;
+    this.miniScale = this.miniSize / Math.max(cfg.WORLD_WIDTH, cfg.WORLD_HEIGHT);
+
+    // Container fixo na UI (não rola com a câmera)
+    this.miniContainer = this.add.container(0, 0);
+    this.miniContainer.setScrollFactor(0);
+    this.miniContainer.setDepth(100);
+
+    // Fundo do minimapa
+    const bg = this.add.graphics();
+    bg.fillStyle(0x0a0118, 0.85);
+    bg.fillRoundedRect(0, 0, this.miniSize + 8, this.miniSize + 8, 6);
+    bg.lineStyle(2, 0x00ffff, 0.7);
+    bg.strokeRoundedRect(0, 0, this.miniSize + 8, this.miniSize + 8, 6);
+    this.miniContainer.add(bg);
+
+    // Traçado da pista (estático, só desenhamos uma vez)
+    const trackMini = this.add.graphics();
+    trackMini.lineStyle(4, 0xff00ff, 0.7);
+    trackMini.beginPath();
+    const wps = window.NK_Track.waypoints;
+    const ox = 4, oy = 4; // padding interno
+    trackMini.moveTo(ox + wps[0].x * this.miniScale, oy + wps[0].y * this.miniScale);
+    for (let i = 1; i < wps.length; i++) {
+      trackMini.lineTo(ox + wps[i].x * this.miniScale, oy + wps[i].y * this.miniScale);
+    }
+    trackMini.strokePath();
+
+    // Linha de chegada (xadrez branco)
+    const fl = window.NK_Track.finishLine;
+    trackMini.lineStyle(2, 0xffffff, 1);
+    trackMini.beginPath();
+    trackMini.moveTo(ox + fl.x1 * this.miniScale, oy + fl.y1 * this.miniScale);
+    trackMini.lineTo(ox + fl.x2 * this.miniScale, oy + fl.y2 * this.miniScale);
+    trackMini.strokePath();
+
+    this.miniContainer.add(trackMini);
+
+    // Camada dinâmica dos jogadores (atualiza no updateMinimap)
+    this.miniPlayers = this.add.graphics();
+    this.miniContainer.add(this.miniPlayers);
+
+    // Posiciona o container no canto inferior direito
+    this.positionMinimap();
+    // Reposiciona quando a janela mudar
+    this.scale.on('resize', () => this.positionMinimap());
+  }
+
+  positionMinimap() {
+    if (!this.miniContainer) return;
+    const w = this.scale.width;
+    const h = this.scale.height;
+    const margin = 12;
+    this.miniContainer.x = w - this.miniSize - margin - 8;
+    this.miniContainer.y = h - this.miniSize - margin - 8;
+  }
+
+  updateMinimap() {
+    if (!this.miniPlayers) return;
+    this.miniPlayers.clear();
+    const ox = 4, oy = 4;
+    Object.values(this.cars).forEach(car => {
+      const x = ox + car.sprite.x * this.miniScale;
+      const y = oy + car.sprite.y * this.miniScale;
+      const isMe = car.id === this.myId;
+      const colorInt = parseInt(car.info.color.replace('#', '0x'), 16);
+      if (isMe) {
+        // Eu: círculo maior com anel branco pulsante (mais visível)
+        this.miniPlayers.fillStyle(0xffffff, 1);
+        this.miniPlayers.fillCircle(x, y, 4);
+        this.miniPlayers.fillStyle(colorInt, 1);
+        this.miniPlayers.fillCircle(x, y, 3);
+      } else {
+        this.miniPlayers.fillStyle(colorInt, 0.9);
+        this.miniPlayers.fillCircle(x, y, 2.5);
+      }
+    });
   }
 }
 
