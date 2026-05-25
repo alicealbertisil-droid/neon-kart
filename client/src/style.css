@@ -131,6 +131,26 @@ html, body {
   color: var(--c-muted);
   margin-top: 10px;
 }
+.event-tag {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(14px, 2.2vw, 20px);
+  letter-spacing: 3px;
+  color: var(--c-magenta);
+  text-shadow: 0 0 8px var(--c-magenta), 0 0 16px rgba(255,0,255,.5);
+  margin-top: 12px;
+  text-transform: uppercase;
+  animation: flicker-pink 5s infinite;
+}
+.credit-tag {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--c-cyan);
+  text-shadow: 0 0 4px var(--c-cyan);
+  margin-top: 6px;
+  opacity: 0.85;
+}
 
 /* Card */
 .card {
