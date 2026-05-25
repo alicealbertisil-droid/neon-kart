@@ -671,91 +671,184 @@ html, body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 200px;
+  /* Respeita safe-area (notch / barra de navegação iOS) */
+  padding: 12px max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-right));
+  height: auto;
+  min-height: 180px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 12px 20px 20px;
   pointer-events: none;
   z-index: 60;
+  /* Impede que toques na área dos botões selecionem texto / mostrem menu */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 .touch-controls.hidden { display: none !important; }
 
 .tc-steer, .tc-actions {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   align-items: flex-end;
   pointer-events: all;
 }
 .tc-actions { flex-direction: row; align-items: flex-end; }
 
 .tc-btn {
-  width: 62px;
-  height: 62px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  border: 2px solid var(--c-cyan);
-  background: rgba(0,255,255,.08);
-  backdrop-filter: blur(4px);
+  border: 3px solid var(--c-cyan);
+  background: rgba(0,255,255,.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--c-cyan);
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: none; /* importante! evita o navegador interpretar scroll/zoom */
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
   user-select: none;
-  transition: background .08s, box-shadow .08s;
-  box-shadow: 0 0 12px rgba(0,255,255,.22), inset 0 0 6px rgba(0,255,255,.05);
+  transition: background .08s, box-shadow .08s, transform .08s;
+  box-shadow: 0 0 16px rgba(0,255,255,.32), inset 0 0 8px rgba(0,255,255,.08);
 }
+.tc-btn:active,
 .tc-btn.active {
-  background: rgba(0,255,255,.28);
-  box-shadow: 0 0 24px var(--c-cyan), inset 0 0 12px rgba(0,255,255,.15);
+  background: rgba(0,255,255,.42);
+  box-shadow: 0 0 28px var(--c-cyan), inset 0 0 16px rgba(0,255,255,.25);
+  transform: scale(0.94);
 }
 
 .tc-gas {
-  width: 78px;
-  height: 78px;
-  font-size: 24px;
+  width: 104px;
+  height: 104px;
+  font-size: 36px;
   border-color: var(--c-green);
-  background: rgba(0,255,136,.08);
+  background: rgba(0,255,136,.18);
   color: var(--c-green);
-  box-shadow: 0 0 14px rgba(0,255,136,.28), inset 0 0 6px rgba(0,255,136,.05);
+  box-shadow: 0 0 20px rgba(0,255,136,.4), inset 0 0 10px rgba(0,255,136,.1);
 }
+.tc-gas:active,
 .tc-gas.active {
-  background: rgba(0,255,136,.28);
-  box-shadow: 0 0 28px var(--c-green), inset 0 0 14px rgba(0,255,136,.16);
+  background: rgba(0,255,136,.46);
+  box-shadow: 0 0 36px var(--c-green), inset 0 0 18px rgba(0,255,136,.22);
 }
 
 .tc-brake {
+  width: 84px;
+  height: 84px;
   border-color: var(--c-pink);
-  background: rgba(255,0,102,.08);
+  background: rgba(255,0,102,.16);
   color: var(--c-pink);
-  box-shadow: 0 0 12px rgba(255,0,102,.22), inset 0 0 6px rgba(255,0,102,.05);
+  box-shadow: 0 0 16px rgba(255,0,102,.32), inset 0 0 8px rgba(255,0,102,.08);
 }
+.tc-brake:active,
 .tc-brake.active {
-  background: rgba(255,0,102,.28);
-  box-shadow: 0 0 24px var(--c-pink), inset 0 0 12px rgba(255,0,102,.15);
+  background: rgba(255,0,102,.42);
+  box-shadow: 0 0 28px var(--c-pink), inset 0 0 16px rgba(255,0,102,.22);
+}
+
+/* ==================== AVISO "VIRE O CELULAR" ==================== */
+#rotate-hint {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 0, 15, .94);
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  font-family: var(--font-display);
+  text-align: center;
+  padding: 24px;
+}
+#rotate-hint .rh-icon {
+  font-size: 80px;
+  animation: rh-rotate 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px var(--c-cyan));
+}
+#rotate-hint .rh-text {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--c-cyan);
+  text-shadow: 0 0 10px var(--c-cyan);
+  line-height: 1.5;
+}
+#rotate-hint .rh-text span {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--c-muted);
+  text-shadow: none;
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+@keyframes rh-rotate {
+  0%, 100% { transform: rotate(-15deg); }
+  50%      { transform: rotate(75deg); }
 }
 
 /* ==================== MOBILE RESPONSIVE ==================== */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  /* ----- LOBBY ----- */
   .lobby-container { padding: 12px 10px; }
   .game-title { font-size: 56px; letter-spacing: 6px; }
   .subtitle { font-size: 12px; }
+  .event-tag { font-size: 14px; letter-spacing: 2px; }
   .card { padding: 18px 16px; border-radius: 8px; }
   .card-title { font-size: 13px; letter-spacing: 3px; }
   .neon-btn.big { font-size: 14px; padding: 12px 20px; }
 
-  /* No HUD mobile: esconde elementos que sobrepõem os controles touch */
+  /* ----- HUD durante a corrida no mobile ----- */
+  /* Esconde o velocímetro de baixo (ficaria atrás dos controles) */
   .hud-block.speedo { display: none; }
+  /* Esconde dica de controles (no mobile o usuário tem botões) */
   .hud-block.controls-hint { display: none; }
-  .hud-block.ranking { right: 4px; top: 80px; }
-  .hud-block.ranking ul { max-height: 140px; overflow: hidden; }
 
-  /* Vitória: card menor */
+  /* HUD mais compacto e transparente para não atrapalhar a visão */
+  .hud-block {
+    padding: 6px 9px;
+    background: linear-gradient(180deg, rgba(10,1,24,.65), rgba(20,4,40,.55));
+  }
+  .hud-label { font-size: 8px; letter-spacing: 1.5px; margin-bottom: 2px; }
+  .hud-value { font-size: 16px; letter-spacing: 1px; }
+
+  .top-left  { top: 10px; left: 10px; }
+  .top-right { top: 10px; right: 10px; }
+
+  /* Ranking: posição mais alta (encostado no topo), menor, mais transparente */
+  .hud-block.ranking {
+    right: 6px;
+    top: 64px;
+    min-width: 0;
+    max-width: 130px;
+  }
+  .hud-block.ranking ul {
+    max-height: 110px;
+    overflow: hidden;
+  }
+  .hud-block.ranking li { font-size: 11px; padding: 2px 0; }
+  .hud-block.ranking li .pos { min-width: 16px; }
+
+  /* Countdown gigante no mobile */
+  .countdown { font-size: clamp(80px, 22vw, 160px); }
+
+  /* ----- TOUCH CONTROLS mobile ----- */
+  /* Garantia: botões grandes em telas pequenas também */
+  .tc-btn { width: 76px; height: 76px; font-size: 24px; }
+  .tc-gas { width: 96px; height: 96px; font-size: 32px; }
+  .tc-brake { width: 76px; height: 76px; }
+
+  /* ----- VITÓRIA ----- */
   .victory-card { padding: 20px 14px 16px; min-width: 0; border-radius: 8px; }
   .victory-title { font-size: 22px; letter-spacing: 4px; }
   .podium { height: 160px; }
@@ -767,4 +860,22 @@ html, body {
   .pt-time { font-size: 12px; }
   .final-ranking li { font-size: 12px; padding: 6px 10px; }
   .neon-btn.primary.big { font-size: 13px; padding: 11px 18px; }
+}
+
+/* Telas EXTRA pequenas (iPhone SE etc) */
+@media (max-width: 380px) {
+  .tc-btn { width: 68px; height: 68px; font-size: 22px; }
+  .tc-gas { width: 86px; height: 86px; font-size: 28px; }
+  .tc-brake { width: 68px; height: 68px; }
+  .tc-steer, .tc-actions { gap: 12px; }
+  .touch-controls { padding: 10px 12px max(14px, env(safe-area-inset-bottom)); }
+}
+
+/* Quando estiver jogando no mobile, evita scroll/zoom acidental da página */
+body.is-mobile-playing {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
 }
