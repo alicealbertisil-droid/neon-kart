@@ -46,6 +46,10 @@ class RaceScene extends Phaser.Scene {
     Object.values(this.initialPlayers).forEach((p) => {
       const pos = grid[i % grid.length];
       this.createCar(p.id, p, pos.x, pos.y, pos.angle);
+      // guarda a posição inicial do MEU carro para o reset por sair da pista
+      if (p.id === this.myId) {
+        this.mySpawnPos = { x: pos.x, y: pos.y, angle: pos.angle };
+      }
       i++;
     });
 
@@ -73,6 +77,7 @@ class RaceScene extends Phaser.Scene {
     this.passedFinish = false;         // se já cruzou a linha de largada uma vez
     this.boostUntil = 0;               // ms - tempo até quando o boost dura
     this.lastNetSend = 0;
+    this.offTrackSince = 0;            // ms - quando começou a ficar fora da pista (0 = está na pista)
 
     // ----- COUNTDOWN -----
     this.startCountdown();
@@ -318,14 +323,95 @@ class RaceScene extends Phaser.Scene {
 
     // ----- PENALIDADE FORA DA PISTA -----
     // Cap de velocidade (não decay por frame, para evitar efeito areia movediça)
-    if (!window.NK_Track.isOnTrack(nextX, nextY)) {
+    const onTrack = window.NK_Track.isOnTrack(nextX, nextY);
+    if (!onTrack) {
       const cap = C.MAX_SPEED * C.OFFTRACK_MULT;
       if (car.speed > cap) car.speed = cap;
+
+      // Marca o início do tempo fora da pista
+      if (this.offTrackSince === 0) {
+        this.offTrackSince = time;
+      }
+
+      // Quanto tempo está fora?
+      const outFor = time - this.offTrackSince;
+      const resetMs = window.NK_CONFIG.OFFTRACK_RESET_MS || 3000;
+
+      // Mostra aviso visual com contagem regressiva
+      this.showOffTrackWarning(Math.ceil((resetMs - outFor) / 1000));
+
+      // Se passou do limite: volta para a linha de largada
+      if (outFor >= resetMs) {
+        this.resetToStart();
+        return; // sai do update desse frame
+      }
+    } else {
+      // Voltou pra pista: limpa o timer e o aviso
+      if (this.offTrackSince !== 0) {
+        this.offTrackSince = 0;
+        this.hideOffTrackWarning();
+      }
     }
 
     car.sprite.x = nextX;
     car.sprite.y = nextY;
     car.sprite.setRotation(car.angle);
+  }
+
+  // ----------------------------------------------------------
+  // RESET PARA LINHA DE LARGADA (após ficar muito tempo fora da pista)
+  // ----------------------------------------------------------
+  resetToStart() {
+    const car = this.myCar;
+    const spawn = this.mySpawnPos;
+    if (!spawn) return;
+
+    car.sprite.x = spawn.x;
+    car.sprite.y = spawn.y;
+    car.angle = spawn.angle;
+    car.sprite.setRotation(spawn.angle);
+    car.speed = 0;
+    this.offTrackSince = 0;
+    this.hideOffTrackWarning();
+
+    // NÃO zera voltas nem checkpoints — só reposiciona o carro
+    // (assim o jogador não perde o progresso da corrida)
+  }
+
+  // ----------------------------------------------------------
+  // Aviso visual de "fora da pista" com contagem regressiva
+  // ----------------------------------------------------------
+  showOffTrackWarning(secondsLeft) {
+    let el = document.getElementById('offtrack-warning');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'offtrack-warning';
+      el.style.cssText = `
+        position: absolute;
+        top: 18%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 900;
+        font-size: clamp(20px, 3.5vw, 38px);
+        color: #ff3366;
+        text-shadow: 0 0 12px #ff3366, 0 0 24px #ff0044;
+        letter-spacing: 2px;
+        text-align: center;
+        z-index: 1000;
+        pointer-events: none;
+        animation: pulse 0.6s infinite;
+      `;
+      const hud = document.getElementById('hud') || document.body;
+      hud.appendChild(el);
+    }
+    el.innerHTML = `⚠ FORA DA PISTA ⚠<br><span style="font-size:0.7em">VOLTANDO EM ${Math.max(0, secondsLeft)}s</span>`;
+    el.style.display = 'block';
+  }
+
+  hideOffTrackWarning() {
+    const el = document.getElementById('offtrack-warning');
+    if (el) el.style.display = 'none';
   }
 
   // ----------------------------------------------------------
