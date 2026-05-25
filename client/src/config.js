@@ -26,7 +26,23 @@ const NK_CONFIG = {
   TRACK_WIDTH: 280, // espessura da pista (px) - mais larga p/ acomodar maior escala
 
   /* ----- PENALIDADE FORA DA PISTA ----- */
-  OFFTRACK_RESET_MS: 3000, // tempo (ms) fora da pista antes de voltar pra largada
+  OFFTRACK_RESET_MS: 2000, // tempo (ms) fora da pista antes de voltar pra largada
+
+  /* ----- OBSTÁCULOS ----- */
+  OBSTACLES: {
+    CONE: {
+      RADIUS: 14,           // raio de colisão do cone (px)
+      SPEED_PENALTY: 0.4,   // reduz velocidade a 40% ao bater
+      KNOCKBACK: 80,        // empurrão lateral em px ao bater
+      COOLDOWN_MS: 800      // tempo até o cone "ressetar" depois de atingido
+    },
+    BANANA: {
+      RADIUS: 18,           // raio de "pisada"
+      SPIN_MS: 900,         // tempo girando descontrolado (ms)
+      SPEED_PENALTY: 0.3,   // velocidade fica em 30% durante o efeito
+      RESPAWN_MS: 6000      // tempo pra banana reaparecer depois de pisada
+    }
+  },
 
   /* ----- CORRIDA ----- */
   MAX_LAPS: 3,
