@@ -324,6 +324,10 @@
       window.NK_Audio.stopEngine();
       window.NK_Audio.stopMusic();
       hideTouchControls();
+      // FIX: no mobile, esconder o canvas Phaser que ficava como fundo preto
+      // atrás da tela de vitória (especialmente em telas onde precisa rolar)
+      const gameContainer = document.getElementById('game-container');
+      if (gameContainer) gameContainer.style.visibility = 'hidden';
     });
 
     // ----- VOLTA PARA O LOBBY -----
@@ -338,6 +342,9 @@
       // Esconde HUD e controles touch
       $('hud').classList.add('hidden');
       hideTouchControls();
+      // Restaura a visibilidade do game-container pra próxima corrida
+      const gameContainer = document.getElementById('game-container');
+      if (gameContainer) gameContainer.style.visibility = '';
     });
   }
 
